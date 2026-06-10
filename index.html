@@ -246,7 +246,8 @@ canvas { max-width: 100%; height: 180px !important; }
 
 /* ===== CUISINE STRIPE COLORS ===== */
 .stripe-italiana{background:#2D9E4E}.stripe-japonesa{background:#E84C4C}.stripe-espanola,.stripe-española{background:#F5A623}.stripe-mexicana{background:#8B4DB8}.stripe-americana{background:#3D7CC9}.stripe-francesa{background:#9B59B6}.stripe-china{background:#E84C4C}.stripe-india{background:#FF8C00}.stripe-mediterranea,.stripe-mediterránea{background:#2980B9}.stripe-arabe,.stripe-árabe{background:#27AE60}.stripe-griega{background:#1ABC9C}.stripe-tailandesa{background:#E91E8C}.stripe-peruana{background:#C0392B}.stripe-burger{background:#E67E22}.stripe-pizza{background:#E74C3C}.stripe-tapas{background:#D4AC0D}.stripe-otro{background:var(--text-3)}
-
+.stripe-vegetariana { background: #5A9A6F }
+  
 /* ===== MODAL TABS ===== */
 .modal-tab-row { display: flex; gap: 6px; margin-bottom: 16px; }
 .modal-tab { flex: 1; padding: 8px 4px; border-radius: 8px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: var(--bg-subtle); color: var(--text-2); cursor: pointer; font-family: 'Inter', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; line-height: 1.2; }
@@ -405,18 +406,42 @@ function loadRestaurantsFromJSON() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const newRestaurants = JSON.parse(ev.target.result);
+        // 🔥 ELIMINA EL BOM (Byte Order Mark) si existe
+        let jsonText = ev.target.result;
+        // Eliminar BOM (caracteres invisibles al inicio)
+        if (jsonText.charCodeAt(0) === 0xFEFF) {
+          jsonText = jsonText.slice(1);
+        }
+        // También eliminar espacios en blanco al inicio
+        jsonText = jsonText.trim();
+        
+        const newRestaurants = JSON.parse(jsonText);
+        
         if (Array.isArray(newRestaurants)) {
           const existingIds = new Set(restaurants.map(r => String(r.id)));
           const toAdd = newRestaurants.filter(r => !existingIds.has(String(r.id)));
-          toAdd.forEach(r => { if (!r.id) r.id = Date.now() + Math.random(); if (!r.favDishes) r.favDishes = []; if (!r.visits) r.visits = []; });
+          
+          toAdd.forEach(r => {
+            if (!r.id) r.id = Date.now() + Math.random();
+            if (!r.favDishes) r.favDishes = [];
+            if (!r.visits) r.visits = [];
+            // Asegurar que la cocina "Vegetariana" se reconozca
+            if (r.cuisine === 'Vegetariana' && !CUISINES.includes('Vegetariana')) {
+              // Esto ya no hará falta porque ya añadimos Vegetariana al array
+            }
+          });
+          
           restaurants = [...toAdd, ...restaurants];
-          saveData(); render();
+          saveData();
+          render();
           showToast(`✓ ${toAdd.length} restaurantes cargados (${newRestaurants.length - toAdd.length} ya existían)`);
         } else {
           showToast('Formato inválido — debe ser un array JSON', true);
         }
-      } catch(err) { showToast('Error al leer archivo', true); }
+      } catch(err) {
+        console.error('Error al parsear JSON:', err);
+        showToast('Error al leer el archivo. Asegúrate de que es un JSON válido.', true);
+      }
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -463,7 +488,9 @@ function formatDate(str) {
 const CUISINES = [
   'Italiana','Japonesa','Española','Mexicana','Americana',
   'Francesa','China','India','Mediterránea','Árabe',
-  'Griega','Tailandesa','Peruana','Burger','Pizza','Tapas','Otro'
+  'Griega','Tailandesa','Peruana','Burger','Pizza','Tapas',
+  'Vegetariana',  // ← AÑADIDO para Baobab, Los Helechos, La Jaula de Grillos
+  'Otro'
 ];
 
 const NEIGHBORHOODS = [
