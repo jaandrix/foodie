@@ -16,999 +16,260 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-/* ===== RESET & BASE (COMPLETO) ===== */
+/* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
-  --bg: #FAFAF8;
-  --bg-card: #FFFFFF;
-  --bg-subtle: #F5F0E8;
-  --text: #1A1A1A;
-  --text-2: #6B6B6B;
-  --text-3: #A0A0A0;
-  --accent: #E8613C;
-  --accent-soft: #FDF0EB;
-  --accent-2: #2D6A4F;
-  --border: #EBEBEB;
-  --border-strong: #D0D0D0;
-  --nav-bg: #FFFFFF;
+  --bg: #FAFAF8; --bg-card: #FFFFFF; --bg-subtle: #F5F0E8;
+  --text: #1A1A1A; --text-2: #6B6B6B; --text-3: #A0A0A0;
+  --accent: #E8613C; --accent-soft: #FDF0EB; --accent-2: #2D6A4F;
+  --border: #EBEBEB; --border-strong: #D0D0D0; --nav-bg: #FFFFFF;
   --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --radius: 16px;
-  --radius-sm: 10px;
+  --radius: 16px; --radius-sm: 10px;
 }
-
 body.dark {
-  --bg: #111111;
-  --bg-card: #1C1C1C;
-  --bg-subtle: #242424;
-  --text: #F0EDE8;
-  --text-2: #9A9A9A;
-  --text-3: #666666;
-  --accent: #F07050;
-  --accent-soft: #2A1A15;
-  --border: #2A2A2A;
-  --border-strong: #3A3A3A;
-  --nav-bg: #1C1C1C;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --bg: #111111; --bg-card: #1C1C1C; --bg-subtle: #242424;
+  --text: #F0EDE8; --text-2: #9A9A9A; --text-3: #666666;
+  --accent: #F07050; --accent-soft: #2A1A15;
+  --border: #2A2A2A; --border-strong: #3A3A3A; --nav-bg: #1C1C1C;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
 }
-
 body.sage {
-  --bg: #F2F5F0;
-  --bg-card: #FFFFFF;
-  --bg-subtle: #E8EFE5;
-  --text: #1E2B1A;
-  --text-2: #5A7054;
-  --text-3: #9AAA94;
-  --accent: #4A7C59;
-  --accent-soft: #E8F0E5;
-  --border: #D8E4D5;
-  --border-strong: #B8CEB5;
-  --nav-bg: #FFFFFF;
+  --bg: #F2F5F0; --bg-card: #FFFFFF; --bg-subtle: #E8EFE5;
+  --text: #1E2B1A; --text-2: #5A7054; --text-3: #9AAA94;
+  --accent: #4A7C59; --accent-soft: #E8F0E5;
+  --border: #D8E4D5; --border-strong: #B8CEB5; --nav-bg: #FFFFFF;
 }
-
 body.slate {
-  --bg: #F0F2F5;
-  --bg-card: #FFFFFF;
-  --bg-subtle: #E5E8EF;
-  --text: #1A1E2A;
-  --text-2: #5A6070;
-  --text-3: #9AA0AA;
-  --accent: #3D5AF1;
-  --accent-soft: #EEF1FE;
-  --border: #DEE2EC;
-  --border-strong: #C0C8D8;
-  --nav-bg: #FFFFFF;
+  --bg: #F0F2F5; --bg-card: #FFFFFF; --bg-subtle: #E5E8EF;
+  --text: #1A1E2A; --text-2: #5A6070; --text-3: #9AA0AA;
+  --accent: #3D5AF1; --accent-soft: #EEF1FE;
+  --border: #DEE2EC; --border-strong: #C0C8D8; --nav-bg: #FFFFFF;
 }
-
 body {
-  background: var(--bg);
-  color: var(--text);
+  background: var(--bg); color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
-  height: 100dvh;
-  overflow: hidden;
+  height: 100dvh; overflow: hidden;
   transition: background 0.2s, color 0.2s;
 }
-
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  max-width: 480px;
-  margin: 0 auto;
-}
+#app { display: flex; flex-direction: column; height: 100dvh; max-width: 480px; margin: 0 auto; }
 
 /* ===== HEADER ===== */
 #header {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  padding: 16px;
-  padding-top: max(16px, env(safe-area-inset-top));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
+  background: var(--bg-card); border-bottom: 1px solid var(--border);
+  padding: 16px; padding-top: max(16px, env(safe-area-inset-top));
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
 }
-
-.header-wordmark {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-
-.header-wordmark span {
-  color: var(--accent);
-}
-
-.header-sub {
-  font-size: 11px;
-  color: var(--text-2);
-  margin-top: 1px;
-  font-weight: 400;
-  letter-spacing: 0.2px;
-}
-
-#btn-new {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.2px;
-}
+.header-wordmark { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
+.header-wordmark span { color: var(--accent); }
+.header-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; font-weight: 400; letter-spacing: 0.2px; }
+#btn-new { background: var(--accent); color: #fff; border: none; border-radius: 20px; padding: 8px 16px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: 'Inter', sans-serif; letter-spacing: 0.2px; }
 
 /* ===== CONTENT ===== */
-#content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  -webkit-overflow-scrolling: touch;
-}
+#content { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
 
 /* ===== NAV ===== */
 #nav {
-  background: var(--nav-bg);
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-shrink: 0;
+  background: var(--nav-bg); border-top: 1px solid var(--border);
+  display: flex; flex-shrink: 0;
   padding-bottom: max(8px, env(safe-area-inset-bottom));
 }
-
-#nav button {
-  flex: 1;
-  background: none;
-  border: none;
-  padding: 10px 0 5px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  color: var(--text-3);
-  transition: color 0.15s;
-}
-
+#nav button { flex: 1; background: none; border: none; padding: 10px 0 5px; cursor: pointer; font-family: 'Inter', sans-serif; color: var(--text-3); transition: color 0.15s; }
 #nav button .nav-icon { font-size: 20px; display: block; }
-#nav button .nav-label { font-size: 9px; font-weight: 600; margin-top: 2px; letter-spacing: 0.3px; text-transform: uppercase; }
+#nav button .nav-label { font-size: 9px; font-weight: 600; margin-top: 2px; letter-spacing: 0.2px; text-transform: none; }
 #nav button.active { color: var(--accent); }
 
 /* ===== CARDS ===== */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
-
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
 .card-padded { padding: 16px; }
 
 /* ===== SECTION TITLE ===== */
-.section-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 12px;
-  margin-top: 4px;
-}
+.section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; margin-top: 4px; }
 
 /* ===== RESTAURANT CARD ===== */
 .resto-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  display: flex;
-  cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.1s;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 10px; overflow: hidden; box-shadow: var(--shadow);
+  display: flex; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s;
 }
-
 .resto-card:active { transform: scale(0.99); }
-
-.resto-stripe {
-  width: 5px;
-  flex-shrink: 0;
-}
-
-.resto-body {
-  flex: 1;
-  padding: 13px 14px;
-  min-width: 0;
-}
-
-.resto-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 3px;
-}
-
-.resto-meta {
-  font-size: 11px;
-  color: var(--text-2);
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.resto-price-dots {
-  display: flex;
-  gap: 2px;
-  align-items: center;
-}
-
-.price-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.price-dot.empty {
-  background: var(--border-strong);
-}
-
-.resto-rating {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.resto-tags {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-}
-
-.tag {
-  background: var(--bg-subtle);
-  color: var(--text-2);
-  font-size: 10px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 20px;
-  letter-spacing: 0.2px;
-}
-
-.tag-accent {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.resto-right {
-  padding: 13px 14px 13px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.visits-badge {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-3);
-}
+.resto-stripe { width: 5px; flex-shrink: 0; }
+.resto-body { flex: 1; padding: 13px 14px; min-width: 0; }
+.resto-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.resto-meta { font-size: 11px; color: var(--text-2); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.resto-price-dots { display: flex; gap: 2px; align-items: center; }
+.price-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.price-dot.empty { background: var(--border-strong); }
+.resto-rating { font-size: 12px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 3px; }
+.resto-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.tag { background: var(--bg-subtle); color: var(--text-2); font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; letter-spacing: 0.2px; }
+.tag-accent { background: var(--accent-soft); color: var(--accent); }
+.resto-right { padding: 13px 14px 13px 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; flex-shrink: 0; }
+.visits-badge { font-size: 10px; font-weight: 600; color: var(--text-3); }
 
 /* ===== STATS ROW ===== */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.stat-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px 8px;
-  text-align: center;
-  box-shadow: var(--shadow);
-}
-
-.stat-val {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1;
-}
-
-.stat-lbl {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 4px;
-}
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 8px; text-align: center; box-shadow: var(--shadow); }
+.stat-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+.stat-lbl { font-size: 9px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
 
 /* ===== MODALS ===== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 200;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  backdrop-filter: blur(2px);
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); }
+.modal-sheet { background: var(--bg-card); border-radius: 24px 24px 0 0; padding: 20px; width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--border-strong); border-radius: 2px; margin: 0 auto 18px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; margin-bottom: 18px; color: var(--text); }
+.modal-close { float: right; background: var(--bg-subtle); border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-2); }
 
-.modal-sheet {
-  background: var(--bg-card);
-  border-radius: 24px 24px 0 0;
-  padding: 20px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 90dvh;
-  overflow-y: auto;
-}
-
-.modal-handle {
-  width: 36px;
-  height: 4px;
-  background: var(--border-strong);
-  border-radius: 2px;
-  margin: 0 auto 18px;
-}
-
-.modal-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 19px;
-  font-weight: 700;
-  margin-bottom: 18px;
-  color: var(--text);
-}
-
-.modal-close {
-  float: right;
-  background: var(--bg-subtle);
-  border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-2);
-}
+/* ===== CONFIRM MODAL ===== */
+.confirm-modal { background: var(--bg-card); border-radius: 20px; padding: 24px; width: calc(100% - 48px); max-width: 340px; text-align: center; box-shadow: var(--shadow-md); }
+.confirm-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.confirm-msg { font-size: 13px; color: var(--text-2); margin-bottom: 20px; line-height: 1.5; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns button { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; border: none; }
+.confirm-cancel { background: var(--bg-subtle); color: var(--text); }
+.confirm-ok { background: #DC2626; color: #fff; }
 
 /* ===== FORM ELEMENTS ===== */
 .form-row { margin-bottom: 14px; }
-
-.form-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--text-2);
-  margin-bottom: 6px;
-  display: block;
-}
-
-.form-input {
-  width: 100%;
-  background: var(--bg-subtle);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 11px 13px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s;
-}
-
+.form-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-2); margin-bottom: 6px; display: block; }
+.form-input { width: 100%; background: var(--bg-subtle); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; color: var(--text); outline: none; transition: border-color 0.15s; }
 .form-input:focus { border-color: var(--accent); }
-
 .form-2col { display: flex; gap: 10px; }
 .form-2col > * { flex: 1; }
-
 textarea.form-input { resize: vertical; min-height: 70px; }
-
-.btn-primary {
-  width: 100%;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.2px;
-  margin-top: 6px;
-}
-
-.btn-secondary {
-  width: 100%;
-  background: var(--bg-subtle);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  margin-top: 8px;
-}
-
-.btn-ghost {
-  background: none;
-  border: 1.5px dashed var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  cursor: pointer;
-  width: 100%;
-  font-family: 'Inter', sans-serif;
-  margin-top: 6px;
-}
+.btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; letter-spacing: 0.2px; margin-top: 6px; }
+.btn-secondary { width: 100%; background: var(--bg-subtle); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 8px; }
+.btn-ghost { background: none; border: 1.5px dashed var(--border-strong); border-radius: var(--radius-sm); padding: 12px; font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; width: 100%; font-family: 'Inter', sans-serif; margin-top: 6px; }
+.btn-danger { background: none; border: 1.5px solid #FCA5A5; border-radius: var(--radius-sm); padding: 12px 14px; color: #DC2626; cursor: pointer; font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 600; }
 
 /* ===== CHIPS ===== */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-
-.chip {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  transition: all 0.12s;
-  color: var(--text-2);
-  background: var(--bg-card);
-}
-
-.chip.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
+.chip { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1.5px solid var(--border); cursor: pointer; transition: all 0.12s; color: var(--text-2); background: var(--bg-card); }
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 /* ===== PRICE SELECTOR ===== */
 .price-selector { display: flex; gap: 6px; margin-top: 6px; }
-
-.price-opt {
-  flex: 1;
-  text-align: center;
-  padding: 10px 4px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-  transition: all 0.12s;
-  color: var(--text-2);
-}
-
-.price-opt.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-}
+.price-opt { flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; border: 1.5px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.12s; color: var(--text-2); }
+.price-opt.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
 /* ===== STAR RATING ===== */
 .star-row { display: flex; gap: 4px; margin-top: 6px; }
-
-.star {
-  font-size: 26px;
-  cursor: pointer;
-  transition: transform 0.1s;
-  line-height: 1;
-  filter: grayscale(1) opacity(0.3);
-}
-
+.star { font-size: 26px; cursor: pointer; transition: transform 0.1s; line-height: 1; filter: grayscale(1) opacity(0.3); }
 .star.active { filter: none; }
 .star:active { transform: scale(1.2); }
 
 /* ===== DIARY CARD ===== */
-.diary-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-}
-
-.diary-date {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 5px;
-}
-
-.diary-resto-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.diary-meta {
-  font-size: 12px;
-  color: var(--text-2);
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.diary-note {
-  font-size: 12px;
-  color: var(--text-2);
-  font-style: italic;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
-}
+.diary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+.diary-date { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
+.diary-resto-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.diary-meta { font-size: 12px; color: var(--text-2); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+.diary-note { font-size: 12px; color: var(--text-2); font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
 
 /* ===== ROULETTE ===== */
-.roulette-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 0 20px;
-}
-
-#roulette-canvas {
-  border-radius: 50%;
-  box-shadow: var(--shadow-md);
-  max-width: 280px;
-  max-height: 280px;
-}
-
-.roulette-btn {
-  margin-top: 20px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 40px;
-  padding: 14px 36px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
-  box-shadow: var(--shadow-md);
-}
-
-.roulette-result {
-  margin-top: 16px;
-  text-align: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  min-height: 30px;
-}
-
-.roulette-result-meta {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: var(--text-2);
-  margin-top: 4px;
-}
+.roulette-wrap { display: flex; flex-direction: column; align-items: center; padding: 10px 0 20px; }
+#roulette-canvas { border-radius: 50%; box-shadow: var(--shadow-md); max-width: 280px; max-height: 280px; }
+.roulette-btn { margin-top: 20px; background: var(--accent); color: #fff; border: none; border-radius: 40px; padding: 14px 36px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; letter-spacing: 0.3px; box-shadow: var(--shadow-md); }
+.roulette-result { margin-top: 16px; text-align: center; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--text); min-height: 30px; }
+.roulette-result-meta { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-2); margin-top: 4px; }
 
 /* ===== FILTER BAR ===== */
-.filter-bar {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  margin-bottom: 14px;
-  scrollbar-width: none;
-}
-
+.filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
 .filter-bar::-webkit-scrollbar { display: none; }
+.filter-pill { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--border); cursor: pointer; white-space: nowrap; background: var(--bg-card); color: var(--text-2); flex-shrink: 0; transition: all 0.12s; }
+.filter-pill.active { background: var(--text); color: var(--bg); border-color: var(--text); }
 
-.filter-pill {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  white-space: nowrap;
-  background: var(--bg-card);
-  color: var(--text-2);
-  flex-shrink: 0;
-  transition: all 0.12s;
-}
-
-.filter-pill.active {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
-}
+/* ===== SORT BAR ===== */
+.sort-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+.sort-pill { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1.5px solid var(--border); cursor: pointer; white-space: nowrap; background: var(--bg-card); color: var(--text-2); flex-shrink: 0; transition: all 0.12s; }
+.sort-pill.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 
 /* ===== RANKING ===== */
-.rank-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-
+.rank-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .rank-item:last-child { border-bottom: none; }
-
-.rank-num {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-3);
-  width: 24px;
-  flex-shrink: 0;
-  text-align: center;
-}
-
+.rank-num { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--text-3); width: 24px; flex-shrink: 0; text-align: center; }
 .rank-num.gold { color: #D4AF37; }
 .rank-num.silver { color: #A8A9AD; }
 .rank-num.bronze { color: #CD7F32; }
-
 .rank-info { flex: 1; min-width: 0; }
 .rank-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rank-sub { font-size: 11px; color: var(--text-2); margin-top: 2px; }
 .rank-score { font-size: 15px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
 
 /* ===== RECIPE CARD ===== */
-.recipe-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transition: box-shadow 0.15s;
-}
-
-.recipe-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.recipe-meta {
-  font-size: 11px;
-  color: var(--text-2);
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.recipe-ingredient-list {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--text-2);
-  line-height: 1.6;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
+.recipe-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; }
+.recipe-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.recipe-meta { font-size: 11px; color: var(--text-2); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.recipe-ingredient-list { margin-top: 10px; font-size: 12px; color: var(--text-2); line-height: 1.6; padding-top: 10px; border-top: 1px solid var(--border); }
 
 /* ===== FAVORITES ===== */
-.fav-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.fav-dish-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 15px;
-  font-weight: 600;
-  flex: 1;
-}
-
-.fav-resto {
-  font-size: 11px;
-  color: var(--text-2);
-  margin-top: 2px;
-}
-
-.fav-user-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 20px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  flex-shrink: 0;
-}
+.fav-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; padding: 14px 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; }
+.fav-dish-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; flex: 1; }
+.fav-resto { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+.fav-user-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); flex-shrink: 0; }
 
 /* ===== DISCOVER ===== */
-.pending-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-}
-
-.pending-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 15px;
-  font-weight: 600;
-  flex: 1;
-}
-
-.pending-meta {
-  font-size: 11px;
-  color: var(--text-2);
-  margin-top: 2px;
-}
+.pending-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; padding: 14px 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.pending-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; flex: 1; }
+.pending-meta { font-size: 11px; color: var(--text-2); margin-top: 2px; }
 
 /* ===== SCANNER ===== */
-.scanner-area {
-  border: 2px dashed var(--border-strong);
-  border-radius: var(--radius);
-  padding: 32px 20px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s;
-  margin-bottom: 14px;
-}
-
+.scanner-area { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.15s; margin-bottom: 14px; }
 .scanner-area:hover { border-color: var(--accent); background: var(--accent-soft); }
-
-.ticket-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-}
-
-.ticket-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.ticket-total {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.ticket-items {
-  font-size: 12px;
-  color: var(--text-2);
-  border-top: 1px dashed var(--border);
-  padding-top: 8px;
-  margin-top: 8px;
-  line-height: 1.8;
-}
+.ticket-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+.ticket-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.ticket-total { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--accent); }
+.ticket-items { font-size: 12px; color: var(--text-2); border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 8px; line-height: 1.8; }
 
 /* ===== THEME SELECTOR ===== */
-.theme-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.theme-btn {
-  flex: 1;
-  padding: 8px 6px;
-  border-radius: var(--radius-sm);
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1.5px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-2);
-  font-family: 'Inter', sans-serif;
-  transition: all 0.12s;
-}
-
-.theme-btn.active {
-  border-color: var(--accent);
-  color: var(--accent);
-}
+.theme-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.theme-btn { flex: 1; padding: 8px 6px; border-radius: var(--radius-sm); text-align: center; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text-2); font-family: 'Inter', sans-serif; transition: all 0.12s; }
+.theme-btn.active { border-color: var(--accent); color: var(--accent); }
 
 /* ===== EMPTY STATE ===== */
-.empty-state {
-  text-align: center;
-  padding: 50px 20px;
-  color: var(--text-3);
-}
-
+.empty-state { text-align: center; padding: 50px 20px; color: var(--text-3); }
 .empty-icon { font-size: 44px; margin-bottom: 12px; }
 .empty-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
 .empty-sub { font-size: 13px; line-height: 1.5; }
 
 /* ===== TOAST ===== */
-#toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--text);
-  color: var(--bg);
-  padding: 10px 18px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  z-index: 300;
-  opacity: 0;
-  transition: opacity 0.25s;
-  pointer-events: none;
-  max-width: 90%;
-  text-align: center;
-  white-space: nowrap;
-}
-
+#toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; z-index: 300; opacity: 0; transition: opacity 0.25s; pointer-events: none; max-width: 90%; text-align: center; white-space: nowrap; }
 #toast.show { opacity: 1; }
 
 /* ===== DIVIDER ===== */
-.divider {
-  height: 1px;
-  background: var(--border);
-  margin: 14px 0;
-}
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
 
 /* ===== CHART CARD ===== */
-.chart-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow);
-}
-
-.chart-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-2);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 12px;
-}
-
+.chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.chart-title { font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
 canvas { max-width: 100%; height: 180px !important; }
 
-/* ===== CUISINE COLORS ===== */
-.stripe-italiana { background: #2D9E4E; }
-.stripe-japonesa { background: #E84C4C; }
-.stripe-española  { background: #F5A623; }
-.stripe-mexicana { background: #8B4DB8; }
-.stripe-americana { background: #3D7CC9; }
-.stripe-francesa { background: #9B59B6; }
-.stripe-china { background: #E84C4C; }
-.stripe-india { background: #FF8C00; }
-.stripe-mediterránea { background: #2980B9; }
-.stripe-árabe { background: #27AE60; }
-.stripe-griega { background: #1ABC9C; }
-.stripe-tailandesa { background: #E91E8C; }
-.stripe-peruana { background: #C0392B; }
-.stripe-burger { background: #E67E22; }
-.stripe-pizza { background: #E74C3C; }
-.stripe-tapas { background: #D4AC0D; }
-.stripe-otro { background: var(--text-3); }
+/* ===== CUISINE STRIPE COLORS ===== */
+.stripe-italiana{background:#2D9E4E}.stripe-japonesa{background:#E84C4C}.stripe-espanola,.stripe-española{background:#F5A623}.stripe-mexicana{background:#8B4DB8}.stripe-americana{background:#3D7CC9}.stripe-francesa{background:#9B59B6}.stripe-china{background:#E84C4C}.stripe-india{background:#FF8C00}.stripe-mediterranea,.stripe-mediterránea{background:#2980B9}.stripe-arabe,.stripe-árabe{background:#27AE60}.stripe-griega{background:#1ABC9C}.stripe-tailandesa{background:#E91E8C}.stripe-peruana{background:#C0392B}.stripe-burger{background:#E67E22}.stripe-pizza{background:#E74C3C}.stripe-tapas{background:#D4AC0D}.stripe-otro{background:var(--text-3)}
 
-/* ===== MODAL NAV ===== */
-.modal-tab-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.modal-tab {
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid var(--border);
-  background: var(--bg-subtle);
-  color: var(--text-2);
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  text-align: center;
-}
-
-.modal-tab.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
+/* ===== MODAL TABS ===== */
+.modal-tab-row { display: flex; gap: 6px; margin-bottom: 16px; }
+.modal-tab { flex: 1; padding: 8px 4px; border-radius: 8px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: var(--bg-subtle); color: var(--text-2); cursor: pointer; font-family: 'Inter', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; line-height: 1.2; }
+.modal-tab .tab-icon { font-size: 18px; line-height: 1; }
+.modal-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 /* ===== USER TOGGLE ===== */
-.user-toggle {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.user-opt {
-  flex: 1;
-  text-align: center;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.12s;
-  background: var(--bg-card);
-  color: var(--text-2);
-}
-
-.user-opt.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-}
+.user-toggle { display: flex; gap: 6px; margin-top: 6px; }
+.user-opt { flex: 1; text-align: center; padding: 8px; border-radius: 8px; border: 1.5px solid var(--border); cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.12s; background: var(--bg-card); color: var(--text-2); }
+.user-opt.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
 /* ===== SCAN RESULT ===== */
-.scan-line {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  padding: 4px 0;
-  border-bottom: 1px dotted var(--border);
-}
-
+.scan-line { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dotted var(--border); }
 .scan-line:last-child { border-bottom: none; }
 
-/* import hidden */
+/* ===== IMPORT HIDDEN ===== */
 .import-input { display: none; }
 
-/* ===== NUEVOS ESTILOS ===== */
+/* ===== MISC ===== */
 .search-bar { margin-bottom: 12px; }
 .foodie-index-bar { background: var(--accent-soft); border-radius: 10px; height: 6px; width: 100%; margin-top: 6px; }
-.foodie-index-fill { background: var(--accent); height: 6px; border-radius: 10px; width: 0%; }
-.ranking-btn { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; margin-left: auto; color: var(--text-2); }
+.foodie-index-fill { background: var(--accent); height: 6px; border-radius: 10px; }
+.ranking-btn { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--text-2); white-space: nowrap; flex-shrink: 0; }
 .what-i-want { background: var(--bg-subtle); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; }
 .wiq-question { margin-bottom: 12px; }
 .wiq-question label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text); }
@@ -1016,6 +277,16 @@ canvas { max-width: 100%; height: 180px !important; }
 .wiq-opt { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--text-2); }
 .wiq-opt.active { background: var(--accent); color: white; border-color: var(--accent); }
 .map-container { height: 400px; width: 100%; border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; z-index: 1; }
+
+/* ===== VISIT ITEM IN DETAIL ===== */
+.visit-item { background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
+.visit-item-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.visit-delete-btn { background: none; border: none; color: var(--text-3); font-size: 16px; cursor: pointer; padding: 0 0 0 8px; line-height: 1; }
+.visit-delete-btn:hover { color: #DC2626; }
+
+/* ===== STORAGE WARNING ===== */
+.storage-bar-wrap { background: var(--bg-subtle); border-radius: 8px; overflow: hidden; height: 6px; margin-top: 6px; }
+.storage-bar-fill { height: 6px; border-radius: 8px; background: var(--accent); transition: width 0.3s; }
 </style>
 </head>
 <body>
@@ -1032,9 +303,9 @@ canvas { max-width: 100%; height: 180px !important; }
     <button class="active" onclick="showView('restaurants')" id="nav-restaurants"><span class="nav-icon">🍽️</span><span class="nav-label">Lista</span></button>
     <button onclick="showView('diary')" id="nav-diary"><span class="nav-icon">📖</span><span class="nav-label">Diario</span></button>
     <button onclick="showView('discover')" id="nav-discover"><span class="nav-icon">🔍</span><span class="nav-label">Descubrir</span></button>
-    <button onclick="showView('roulette')" id="nav-roulette"><span class="nav-icon">🎰</span><span class="nav-label">Ruleta</span></button>
-    <button onclick="showView('favorites')" id="nav-favorites"><span class="nav-icon">♥</span><span class="nav-label">Favoritos</span></button>
-    <button onclick="showView('more')" id="nav-more"><span class="nav-icon">···</span><span class="nav-label">Más</span></button>
+    <button onclick="showView('roulette')" id="nav-roulette"><span class="nav-icon">🎲</span><span class="nav-label">Ruleta</span></button>
+    <button onclick="showView('favorites')" id="nav-favorites"><span class="nav-icon">❤️</span><span class="nav-label">Favoritos</span></button>
+    <button onclick="showView('more')" id="nav-more"><span class="nav-icon">•••</span><span class="nav-label">Más</span></button>
   </nav>
 </div>
 
@@ -1042,41 +313,44 @@ canvas { max-width: 100%; height: 180px !important; }
 <div id="toast"></div>
 <input type="file" id="import-file" class="import-input" accept=".json" onchange="handleImport(event)">
 <input type="file" id="scan-file" class="import-input" accept="image/*" onchange="handleScan(event)">
+<input type="file" id="load-json-file" class="import-input" accept=".json">
 
 <script>
 // ================================================================
 // DATA STRUCTURES
 // ================================================================
-
 let restaurants = [];
 let recipes = [];
 let tickets = [];
 let currentView = 'restaurants';
 let currentTheme = 'light';
 
-// Filters
 let filterCuisine = 'all';
-let filterNeighborhood = 'all';  // NUEVO: filtro por barrio
+let filterNeighborhood = 'all';
 let filterDiscover = 'all';
 let filterFavUser = 'all';
-let rouletteFilters = { cuisine: 'all', price: 'all', city: 'all', neighborhood: 'all' }; // NUEVO: barrio en ruleta
-
-// Roulette state
+let sortMode = 'rating'; // 'rating' | 'visits' | 'recent' | 'alpha'
+let rouletteFilters = { cuisine: 'all', price: 'all', city: 'all', neighborhood: 'all' };
 let rouletteAngle = 0;
 let rouletteSpinning = false;
 let rouletteResult = null;
-
-// NUEVOS: Search y "Qué me apetece"
 let searchTerm = '';
+let diarySearch = '';
 let wiqFilters = { type: null, speed: null, budget: null, terrace: null, cuisine: null };
 
 // ================================================================
 // STORAGE
 // ================================================================
 function saveData() {
-  localStorage.setItem('foodie_restaurants', JSON.stringify(restaurants));
-  localStorage.setItem('foodie_recipes', JSON.stringify(recipes));
-  localStorage.setItem('foodie_tickets', JSON.stringify(tickets));
+  try {
+    localStorage.setItem('foodie_restaurants', JSON.stringify(restaurants));
+    localStorage.setItem('foodie_recipes', JSON.stringify(recipes));
+    localStorage.setItem('foodie_tickets', JSON.stringify(tickets));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') {
+      showToast('⚠️ Almacenamiento lleno — exporta una copia', true);
+    }
+  }
 }
 
 function loadData() {
@@ -1084,6 +358,16 @@ function loadData() {
   try { recipes = JSON.parse(localStorage.getItem('foodie_recipes') || '[]'); } catch(e) { recipes = []; }
   try { tickets = JSON.parse(localStorage.getItem('foodie_tickets') || '[]'); } catch(e) { tickets = []; }
   currentTheme = localStorage.getItem('foodie_theme') || 'light';
+}
+
+function getStorageUsageKB() {
+  let total = 0;
+  try {
+    total += (localStorage.getItem('foodie_restaurants') || '').length;
+    total += (localStorage.getItem('foodie_recipes') || '').length;
+    total += (localStorage.getItem('foodie_tickets') || '').length;
+  } catch(e) {}
+  return Math.round(total / 1024);
 }
 
 function exportData() {
@@ -1113,11 +397,8 @@ function handleImport(e) {
   e.target.value = '';
 }
 
-// NUEVO: Función para cargar JSON de restaurantes externo
 function loadRestaurantsFromJSON() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
+  const input = document.getElementById('load-json-file');
   input.onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1126,19 +407,19 @@ function loadRestaurantsFromJSON() {
       try {
         const newRestaurants = JSON.parse(ev.target.result);
         if (Array.isArray(newRestaurants)) {
-          // Añadir IDs únicos si no tienen
-          newRestaurants.forEach(r => { if (!r.id) r.id = Date.now() + Math.random(); });
-          restaurants = [...newRestaurants, ...restaurants];
-          saveData();
-          render();
-          showToast(`✓ ${newRestaurants.length} restaurantes cargados`);
-          updateNeighborhoodsList(); // Actualizar lista de barrios
+          const existingIds = new Set(restaurants.map(r => String(r.id)));
+          const toAdd = newRestaurants.filter(r => !existingIds.has(String(r.id)));
+          toAdd.forEach(r => { if (!r.id) r.id = Date.now() + Math.random(); if (!r.favDishes) r.favDishes = []; if (!r.visits) r.visits = []; });
+          restaurants = [...toAdd, ...restaurants];
+          saveData(); render();
+          showToast(`✓ ${toAdd.length} restaurantes cargados (${newRestaurants.length - toAdd.length} ya existían)`);
         } else {
-          showToast('Formato inválido', true);
+          showToast('Formato inválido — debe ser un array JSON', true);
         }
       } catch(err) { showToast('Error al leer archivo', true); }
     };
     reader.readAsText(file);
+    e.target.value = '';
   };
   input.click();
 }
@@ -1157,16 +438,26 @@ function showToast(msg, isError = false) {
 
 function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
 
+// Confirm modal (replaces native confirm())
+function showConfirm(title, msg, onOk) {
+  const html = `<div class="modal-overlay" style="align-items:center">
+    <div class="confirm-modal">
+      <div class="confirm-title">${title}</div>
+      <div class="confirm-msg">${msg}</div>
+      <div class="confirm-btns">
+        <button class="confirm-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="confirm-ok" id="confirm-ok-btn">Eliminar</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-container').innerHTML = html;
+  document.getElementById('confirm-ok-btn').onclick = () => { closeModal(); onOk(); };
+}
+
 function formatDate(str) {
   if (!str) return '';
   const d = new Date(str + 'T12:00:00');
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function formatDateShort(str) {
-  if (!str) return '';
-  const d = new Date(str + 'T12:00:00');
-  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
 const CUISINES = [
@@ -1175,37 +466,34 @@ const CUISINES = [
   'Griega','Tailandesa','Peruana','Burger','Pizza','Tapas','Otro'
 ];
 
-// NUEVO: Lista de barrios de Zaragoza
 const NEIGHBORHOODS = [
-  'Casco Antiguo', 'El Tubo', 'Centro', 'Paseo Independencia', 'Romareda', 'Universidad',
-  'Delicias', 'San José', 'Las Fuentes', 'Torrero', 'La Paz', 'Actur', 'Rey Fernando',
-  'Miralbueno', 'Valdespartera', 'Montecanal', 'Parque Goya', 'Santa Isabel', 'Oliver',
-  'Valdefierro', 'Almozara', 'Expo', 'Casablanca', 'Arrabal', 'San Pablo', 'La Almozara'
+  'Casco Antiguo','El Tubo','Centro','Paseo Independencia','Romareda','Universidad',
+  'Delicias','San José','Las Fuentes','Torrero','La Paz','Actur','Rey Fernando',
+  'Miralbueno','Valdespartera','Montecanal','Parque Goya','Santa Isabel','Oliver',
+  'Valdefierro','Almozara','Expo','Casablanca','Arrabal','San Pablo','La Almozara'
 ];
 
 function stripeClass(cuisine) {
   if (!cuisine) return 'stripe-otro';
-  return 'stripe-' + cuisine.toLowerCase().replace(/[áéíóú]/g, c => ({á:'a',é:'e',í:'i',ó:'o',ú:'u'}[c]));
+  return 'stripe-' + cuisine.toLowerCase()
+    .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i').replace(/ó/g,'o').replace(/ú/g,'u')
+    .replace(/[^a-z]/g,'');
 }
 
 function priceDotsHtml(level, size = 5) {
   let html = '<div class="resto-price-dots">';
-  for (let i = 1; i <= 5; i++) {
-    html += `<div class="price-dot${i > level ? ' empty' : ''}" style="width:${size}px;height:${size}px"></div>`;
-  }
+  for (let i = 1; i <= 5; i++) html += `<div class="price-dot${i > level ? ' empty' : ''}" style="width:${size}px;height:${size}px"></div>`;
   return html + '</div>';
 }
 
 function priceLabelHtml(level) {
-  const labels = ['', '€', '€€', '€€€', '€€€€', '€€€€€'];
-  return labels[level] || '—';
+  return ['','€','€€','€€€','€€€€','€€€€€'][level] || '—';
 }
 
 function getRestaurantAvgRating(r) {
   const visits = (r.visits || []).filter(v => v.rating > 0);
   if (!visits.length) return null;
-  const avg = visits.reduce((a, v) => a + v.rating, 0) / visits.length;
-  return Math.round(avg * 10) / 10;
+  return Math.round(visits.reduce((a, v) => a + v.rating, 0) / visits.length * 10) / 10;
 }
 
 function starsHtml(rating, size = 13) {
@@ -1229,48 +517,31 @@ function allVisits() {
 }
 
 function getUniqueCuisines() {
-  const set = new Set(restaurants.map(r => r.cuisine).filter(Boolean));
-  return [...set].sort();
+  return [...new Set(restaurants.map(r => r.cuisine).filter(Boolean))].sort();
 }
 
 function getUniqueCities() {
-  const set = new Set(restaurants.map(r => r.city).filter(Boolean));
-  return [...set].sort();
+  return [...new Set(restaurants.map(r => r.city).filter(Boolean))].sort();
 }
 
-// NUEVO: Obtener barrios únicos de los restaurantes
 function getUniqueNeighborhoods() {
-  const set = new Set(restaurants.map(r => r.neighborhood).filter(Boolean));
-  return [...set].sort();
-}
-
-function updateNeighborhoodsList() {
-  const neighborhoods = getUniqueNeighborhoods();
-  if (neighborhoods.length > 0) {
-    // Podríamos actualizar el filtro dinámicamente
-  }
+  return [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort();
 }
 
 // ================================================================
-// NUEVO: ÍNDICE FOODIE
+// FOODIE SCORE
 // ================================================================
 function calculateFoodieScore(restaurant) {
   let score = 0;
   const avgRating = getRestaurantAvgRating(restaurant) || 0;
   score += (avgRating / 5) * 40;
-  const visitCount = (restaurant.visits || []).length;
-  score += Math.min(visitCount, 20) * 1;
-  const priceScore = 15 - (restaurant.priceLevel - 1) * 3;
-  score += Math.max(priceScore, 0);
-  const favCount = (restaurant.favDishes || []).length;
-  score += Math.min(favCount, 15);
-  const visits = (restaurant.visits || []).sort((a, b) => b.date.localeCompare(a.date));
-  if (visits.length > 0) {
-    const lastVisitDate = new Date(visits[0].date + 'T12:00:00');
-    const now = new Date();
-    const daysSince = Math.floor((now - lastVisitDate) / (1000 * 60 * 60 * 24));
-    if (daysSince <= 30) score += 10;
-    else if (daysSince <= 90) score += 5;
+  score += Math.min((restaurant.visits || []).length, 20);
+  score += Math.max(15 - (restaurant.priceLevel - 1) * 3, 0);
+  score += Math.min((restaurant.favDishes || []).length, 15);
+  const visits = (restaurant.visits || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+  if (visits.length) {
+    const days = Math.floor((new Date() - new Date(visits[0].date + 'T12:00:00')) / 86400000);
+    if (days <= 30) score += 10; else if (days <= 90) score += 5;
   }
   return Math.min(Math.round(score), 100);
 }
@@ -1293,7 +564,7 @@ function handleNew() {
   if (currentView === 'restaurants') openRestaurantModal(null);
   else if (currentView === 'diary') openDiaryModal(null);
   else if (currentView === 'discover') openPendingModal(null);
-  else if (currentView === 'favorites') openFavModal(null);
+  else if (currentView === 'favorites') openAddFavDishModal(restaurants.find(r => !r.pendingVisit)?.id);
   else if (currentView === 'roulette') openRouletteFilters();
   else openRestaurantModal(null);
 }
@@ -1316,7 +587,7 @@ function render() {
 }
 
 // ================================================================
-// VIEW: RESTAURANTS (CON BÚSQUEDA Y FILTRO POR BARRIO)
+// VIEW: RESTAURANTS
 // ================================================================
 function renderRestaurants() {
   const visited = restaurants.filter(r => !r.pendingVisit);
@@ -1327,58 +598,80 @@ function renderRestaurants() {
   if (filterCuisine !== 'all') filtered = filtered.filter(r => r.cuisine === filterCuisine);
   if (filterNeighborhood !== 'all') filtered = filtered.filter(r => r.neighborhood === filterNeighborhood);
   if (searchTerm) filtered = filtered.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  
+
+  // Ordenación
   filtered.sort((a, b) => {
-    const ra = getRestaurantAvgRating(a) || 0;
-    const rb = getRestaurantAvgRating(b) || 0;
-    return rb - ra;
+    if (sortMode === 'rating') {
+      const ra = getRestaurantAvgRating(a) || 0, rb = getRestaurantAvgRating(b) || 0;
+      return rb - ra;
+    }
+    if (sortMode === 'visits') return (b.visits||[]).length - (a.visits||[]).length;
+    if (sortMode === 'recent') {
+      const la = (a.visits||[]).slice().sort((x,y) => y.date.localeCompare(x.date))[0]?.date || '0';
+      const lb = (b.visits||[]).slice().sort((x,y) => y.date.localeCompare(x.date))[0]?.date || '0';
+      return lb.localeCompare(la);
+    }
+    if (sortMode === 'alpha') return a.name.localeCompare(b.name, 'es');
+    return 0;
   });
+
+  const sortHtml = `<div class="sort-bar">
+    ${[['rating','⭐ Nota'],['visits','🔁 Visitas'],['recent','🕐 Reciente'],['alpha','🔤 A-Z']].map(([v,l]) =>
+      `<div class="sort-pill ${sortMode === v ? 'active' : ''}" onclick="setSortMode('${v}')">${l}</div>`
+    ).join('')}
+  </div>`;
 
   const filterHtml = `
     <div class="filter-bar">
-      <div class="filter-pill ${filterCuisine === 'all' ? 'active' : ''}" onclick="setFilterCuisine('all')">Todas cocinas</div>
-      ${cuisines.slice(0,8).map(c => `<div class="filter-pill ${filterCuisine === c ? 'active' : ''}" onclick="setFilterCuisine('${c}')">${c}</div>`).join('')}
+      <div class="filter-pill ${filterCuisine === 'all' ? 'active' : ''}" onclick="setFilterCuisine('all')">Todas</div>
+      ${cuisines.map(c => `<div class="filter-pill ${filterCuisine === c ? 'active' : ''}" onclick="setFilterCuisine('${c}')">${c}</div>`).join('')}
     </div>
-    <div class="filter-bar">
-      <div class="filter-pill ${filterNeighborhood === 'all' ? 'active' : ''}" onclick="setFilterNeighborhood('all')">Todos barrios</div>
-      ${neighborhoods.slice(0,10).map(n => `<div class="filter-pill ${filterNeighborhood === n ? 'active' : ''}" onclick="setFilterNeighborhood('${n}')">${n}</div>`).join('')}
-    </div>
+    ${neighborhoods.length ? `<div class="filter-bar">
+      <div class="filter-pill ${filterNeighborhood === 'all' ? 'active' : ''}" onclick="setFilterNeighborhood('all')">Todos los barrios</div>
+      ${neighborhoods.map(n => `<div class="filter-pill ${filterNeighborhood === n ? 'active' : ''}" onclick="setFilterNeighborhood('${n}')">${n}</div>`).join('')}
+    </div>` : ''}
     <div class="search-bar">
-      <input type="text" class="form-input" placeholder="🔍 Buscar restaurante..." id="restaurant-search" value="${searchTerm}" oninput="updateSearch(this.value)">
+      <input type="text" class="form-input" placeholder="🔍 Buscar restaurante..." value="${searchTerm}" oninput="updateSearch(this.value)">
     </div>
+    ${sortHtml}
   `;
 
   if (!visited.length) {
     return `<div class="empty-state">
       <div class="empty-icon">🍽️</div>
       <div class="empty-title">Sin restaurantes aún</div>
-      <div class="empty-sub">Añade tu primer restaurante o carga el JSON con 250 establecimientos</div>
-      <button class="btn-secondary" style="margin-top:16px" onclick="loadRestaurantsFromJSON()">📂 Cargar restaurantes desde JSON</button>
+      <div class="empty-sub">Añade tu primer restaurante o carga el JSON</div>
+      <button class="btn-secondary" style="margin-top:16px" onclick="loadRestaurantsFromJSON()">📂 Cargar desde JSON</button>
     </div>`;
   }
-  return filterHtml + filtered.map(renderRestoCard).join('') || '<div class="empty-state"><div class="empty-sub">Ningún restaurante con estos filtros</div></div>';
+
+  const cardsHtml = filtered.length
+    ? filtered.map(renderRestoCard).join('')
+    : '<div class="empty-state"><div class="empty-sub">Ningún restaurante con estos filtros</div></div>';
+
+  return filterHtml + cardsHtml;
 }
 
 function updateSearch(term) { searchTerm = term; render(); }
 function setFilterCuisine(c) { filterCuisine = c; render(); }
 function setFilterNeighborhood(n) { filterNeighborhood = n; render(); }
+function setSortMode(m) { sortMode = m; render(); }
 
 function renderRestoCard(r) {
   const rating = getRestaurantAvgRating(r);
   const visits = (r.visits || []).length;
-  const sc = stripeClass(r.cuisine);
-
   return `<div class="resto-card" onclick="openRestaurantDetail(${r.id})">
-    <div class="resto-stripe ${sc}"></div>
+    <div class="resto-stripe ${stripeClass(r.cuisine)}"></div>
     <div class="resto-body">
       <div class="resto-name">${r.name}</div>
       <div class="resto-meta">
-        <span>${r.neighborhood || r.city || ''}${r.country && r.country !== r.city ? ', ' + r.country : ''}</span>
-        ${priceDotsHtml(r.priceLevel || 1, 5)}
+        <span>${r.neighborhood || r.city || ''}</span>
+        ${priceDotsHtml(r.priceLevel || 1)}
+        ${r.terrace ? '<span title="Tiene terraza">☀️</span>' : ''}
       </div>
       <div class="resto-tags">
         ${r.cuisine ? `<span class="tag tag-accent">${r.cuisine}</span>` : ''}
-        ${(r.favDishes || []).slice(0, 2).map(f => `<span class="tag">♥ ${f.dish}</span>`).join('')}
+        ${(r.favDishes || []).slice(0,2).map(f => `<span class="tag">♥ ${f.dish}</span>`).join('')}
       </div>
     </div>
     <div class="resto-right">
@@ -1389,7 +682,7 @@ function renderRestoCard(r) {
 }
 
 // ================================================================
-// RESTAURANT DETAIL MODAL (COMPLETO)
+// RESTAURANT DETAIL MODAL
 // ================================================================
 function openRestaurantDetail(id) {
   const r = restaurants.find(x => x.id === id);
@@ -1398,19 +691,25 @@ function openRestaurantDetail(id) {
   const visits = (r.visits || []).slice().sort((a, b) => b.date.localeCompare(a.date));
 
   const visitsHtml = visits.length ? visits.map(v => `
-    <div class="diary-card" style="margin-bottom:8px">
-      <div class="diary-date">${formatDate(v.date)}</div>
-      <div class="diary-meta">
-        ${starsHtml(v.rating)}
-        <span>👤 ${v.who || 'Ambos'}</span>
-        ${v.totalSpent ? `<span>💶 ${v.totalSpent}€</span>` : ''}
+    <div class="visit-item">
+      <div class="visit-item-header">
+        <div>
+          <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">${formatDate(v.date)}</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text-2)">
+            ${v.rating ? starsHtml(v.rating) : ''}
+            <span>👤 ${v.who || 'Ambos'}</span>
+            ${v.totalSpent ? `<span>💶 ${v.totalSpent}€</span>` : ''}
+          </div>
+        </div>
+        <button class="visit-delete-btn" onclick="confirmDeleteVisit(${id}, ${v.id})">✕</button>
       </div>
-      ${v.notes ? `<div class="diary-note">${v.notes}</div>` : ''}
-    </div>`) .join('') : '<div style="font-size:12px;color:var(--text-3);padding:10px 0">Sin visitas registradas</div>';
+      ${v.notes ? `<div style="font-size:12px;color:var(--text-2);font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${v.notes}</div>` : ''}
+    </div>`) .join('')
+    : '<div style="font-size:12px;color:var(--text-3);padding:10px 0">Sin visitas registradas</div>';
 
   const favHtml = (r.favDishes || []).map((f, i) => `
     <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:15px">♥</span>
+      <span style="font-size:15px">❤️</span>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${f.dish}</div>
         ${f.note ? `<div style="font-size:11px;color:var(--text-2)">${f.note}</div>` : ''}
@@ -1423,40 +722,57 @@ function openRestaurantDetail(id) {
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-        <div>
+        <div style="flex:1;min-width:0;padding-right:12px">
           <div class="modal-title" style="margin-bottom:4px">${r.name}</div>
-          <div style="font-size:12px;color:var(--text-2)">${r.neighborhood || r.city || ''}${r.country ? ' · ' + r.country : ''} · ${r.cuisine || ''} · ${priceLabelHtml(r.priceLevel)}</div>
-          ${rating ? `<div style="margin-top:5px">${starsHtml(rating)}</div>` : ''}
+          <div style="font-size:12px;color:var(--text-2)">
+            ${[r.neighborhood || r.city, r.cuisine, priceLabelHtml(r.priceLevel), r.terrace ? '☀️ Terraza' : ''].filter(Boolean).join(' · ')}
+          </div>
+          ${rating ? `<div style="margin-top:5px">${starsHtml(rating)} <span style="font-size:11px;color:var(--text-3)">(${visits.length} visita${visits.length !== 1 ? 's' : ''})</span></div>` : ''}
+          ${r.hours ? `<div style="font-size:11px;color:var(--text-2);margin-top:4px">🕒 ${r.hours}</div>` : ''}
+          ${r.web ? `<div style="margin-top:4px"><a href="${r.web}" target="_blank" style="font-size:11px;color:var(--accent)">🌐 ${r.web}</a></div>` : ''}
+          ${r.phone ? `<div style="margin-top:4px"><a href="tel:${r.phone}" style="font-size:11px;color:var(--accent)">📞 ${r.phone}</a></div>` : ''}
         </div>
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
 
       ${r.notes ? `<div style="font-size:12px;color:var(--text-2);font-style:italic;margin-bottom:14px;padding:10px;background:var(--bg-subtle);border-radius:10px">${r.notes}</div>` : ''}
 
-      <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button onclick="closeModal();openVisitModal(${id})" class="btn-primary" style="margin-top:0;flex:1">+ Registrar visita</button>
-        <button onclick="closeModal();openRestaurantModal(${id})" class="btn-secondary" style="margin-top:0;flex:0 0 auto;width:auto;padding:12px 16px">✏️</button>
-        <button onclick="deleteRestaurant(${id})" style="background:none;border:1.5px solid #FCA5A5;border-radius:var(--radius-sm);padding:12px 14px;color:#DC2626;cursor:pointer;font-size:13px">🗑</button>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button onclick="closeModal();openVisitModal(${id})" class="btn-primary" style="margin-top:0;flex:1;min-width:120px">+ Registrar visita</button>
+        <button onclick="closeModal();openRestaurantModal(${id})" class="btn-secondary" style="margin-top:0;flex:0 0 auto;width:auto;padding:12px 16px">✏️ Editar</button>
+        <button onclick="confirmDeleteRestaurant(${id})" class="btn-danger">🗑</button>
       </div>
 
       <div class="section-label">Platos favoritos</div>
       ${favHtml || '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px">Sin platos favoritos aún</div>'}
-      <button class="btn-ghost" onclick="closeModal();openAddFavDishModal(${id})">♥ Añadir plato favorito</button>
+      <button class="btn-ghost" onclick="closeModal();openAddFavDishModal(${id})">❤️ Añadir plato favorito</button>
 
       <div class="divider"></div>
       <div class="section-label">Historial de visitas (${visits.length})</div>
       ${visitsHtml}
     </div>
   </div>`;
-
   document.getElementById('modal-container').innerHTML = html;
 }
 
-function deleteRestaurant(id) {
-  if (!confirm('¿Eliminar este restaurante y todas sus visitas?')) return;
-  restaurants = restaurants.filter(r => r.id !== id);
-  saveData(); closeModal(); render();
-  showToast('Restaurante eliminado');
+function confirmDeleteRestaurant(id) {
+  const r = restaurants.find(x => x.id === id);
+  showConfirm('Eliminar restaurante', `¿Eliminar "${r?.name}" y todas sus visitas? Esta acción no se puede deshacer.`, () => {
+    restaurants = restaurants.filter(r => r.id !== id);
+    saveData(); render();
+    showToast('Restaurante eliminado');
+  });
+}
+
+function confirmDeleteVisit(restoId, visitId) {
+  showConfirm('Eliminar visita', '¿Eliminar esta visita del historial?', () => {
+    const r = restaurants.find(x => x.id === restoId);
+    if (!r) return;
+    r.visits = (r.visits || []).filter(v => v.id !== visitId);
+    saveData();
+    openRestaurantDetail(restoId);
+    showToast('Visita eliminada');
+  });
 }
 
 function removeFavDish(restoId, dishIdx) {
@@ -1468,7 +784,7 @@ function removeFavDish(restoId, dishIdx) {
 }
 
 // ================================================================
-// ADD/EDIT RESTAURANT MODAL (CON BARRIO)
+// ADD/EDIT RESTAURANT MODAL (con campos extra: terraza, web, teléfono)
 // ================================================================
 let modalPriceLevel = 2;
 let editingRestoId = null;
@@ -1478,14 +794,8 @@ function openRestaurantModal(id) {
   const r = id ? restaurants.find(x => x.id === id) : null;
   modalPriceLevel = r?.priceLevel || 2;
 
-  const cuistineOpts = CUISINES.map(c =>
-    `<option value="${c}" ${r?.cuisine === c ? 'selected' : ''}>${c}</option>`
-  ).join('');
-  
-  const neighborhoodOpts = NEIGHBORHOODS.map(n =>
-    `<option value="${n}" ${r?.neighborhood === n ? 'selected' : ''}>${n}</option>`
-  ).join('');
-
+  const cuisineOpts = CUISINES.map(c => `<option value="${c}" ${r?.cuisine === c ? 'selected' : ''}>${c}</option>`).join('');
+  const neighborhoodOpts = NEIGHBORHOODS.map(n => `<option value="${n}" ${r?.neighborhood === n ? 'selected' : ''}>${n}</option>`).join('');
   const priceHtml = [1,2,3,4,5].map(i =>
     `<div class="price-opt ${modalPriceLevel === i ? 'active' : ''}" onclick="setModalPrice(${i})" id="price-opt-${i}">${'€'.repeat(i)}</div>`
   ).join('');
@@ -1499,31 +809,52 @@ function openRestaurantModal(id) {
         <label class="form-label">Nombre</label>
         <input id="r-name" class="form-input" placeholder="Ej: La Tasca" value="${r?.name || ''}">
       </div>
-
       <div class="form-2col">
         <div class="form-row">
           <label class="form-label">Barrio</label>
-          <select id="r-neighborhood" class="form-input">${neighborhoodOpts}<option value="Otro">Otro</option></select>
+          <select id="r-neighborhood" class="form-input">${neighborhoodOpts}<option value="Otro" ${r?.neighborhood === 'Otro' ? 'selected' : ''}>Otro</option></select>
         </div>
         <div class="form-row">
           <label class="form-label">Ciudad</label>
           <input id="r-city" class="form-input" placeholder="Zaragoza" value="${r?.city || 'Zaragoza'}">
         </div>
       </div>
-
       <div class="form-row">
         <label class="form-label">País</label>
         <input id="r-country" class="form-input" placeholder="España" value="${r?.country || 'España'}">
       </div>
-
       <div class="form-row">
         <label class="form-label">Tipo de cocina</label>
-        <select id="r-cuisine" class="form-input">${cuistineOpts}</select>
+        <select id="r-cuisine" class="form-input">${cuisineOpts}</select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Precio medio</label>
+        <div class="price-selector">${priceHtml}</div>
       </div>
 
       <div class="form-row">
-        <label class="form-label">Precio medio</label>
-        <div class="price-selector" id="price-selector">${priceHtml}</div>
+        <label class="form-label">Horario</label>
+        <input id="r-hours" class="form-input" placeholder="Ej: L-V 13:00-16:00, 20:00-23:00" value="${r?.hours || ''}">
+      </div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label class="form-label">Teléfono</label>
+          <input id="r-phone" class="form-input" placeholder="976 000 000" value="${r?.phone || ''}">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Web / reservas</label>
+          <input id="r-web" class="form-input" placeholder="https://..." value="${r?.web || ''}">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Extras</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="r-terrace" ${r?.terrace ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent)">
+            ☀️ Tiene terraza
+          </label>
+        </div>
       </div>
 
       <div class="form-row">
@@ -1534,21 +865,17 @@ function openRestaurantModal(id) {
       <button class="btn-primary" onclick="saveRestaurant()">Guardar</button>
     </div>
   </div>`;
-
   document.getElementById('modal-container').innerHTML = html;
 }
 
 function setModalPrice(level) {
   modalPriceLevel = level;
-  document.querySelectorAll('.price-opt').forEach((el, i) => {
-    el.classList.toggle('active', i + 1 === level);
-  });
+  document.querySelectorAll('.price-opt').forEach((el, i) => el.classList.toggle('active', i + 1 === level));
 }
 
 function saveRestaurant() {
   const name = document.getElementById('r-name').value.trim();
   if (!name) { showToast('Escribe un nombre', true); return; }
-
   const data = {
     id: editingRestoId || Date.now(),
     name,
@@ -1557,16 +884,17 @@ function saveRestaurant() {
     country: document.getElementById('r-country').value.trim() || 'España',
     cuisine: document.getElementById('r-cuisine').value,
     priceLevel: modalPriceLevel,
+    hours: document.getElementById('r-hours').value.trim(),
+    phone: document.getElementById('r-phone').value.trim(),
+    web: document.getElementById('r-web').value.trim(),
+    terrace: document.getElementById('r-terrace').checked,
     notes: document.getElementById('r-notes').value.trim(),
-    pendingVisit: false,
+    pendingVisit: editingRestoId ? (restaurants.find(r => r.id === editingRestoId)?.pendingVisit || false) : false,
     favDishes: editingRestoId ? (restaurants.find(r => r.id === editingRestoId)?.favDishes || []) : [],
     visits: editingRestoId ? (restaurants.find(r => r.id === editingRestoId)?.visits || []) : []
   };
-
   const idx = restaurants.findIndex(r => r.id === data.id);
-  if (idx >= 0) restaurants[idx] = data;
-  else restaurants.unshift(data);
-
+  if (idx >= 0) restaurants[idx] = data; else restaurants.unshift(data);
   saveData(); closeModal(); render();
   showToast(`"${name}" guardado ✓`);
 }
@@ -1582,10 +910,6 @@ function openVisitModal(restoId) {
   visitRating = 0;
   const today = new Date().toISOString().slice(0, 10);
 
-  const starsHtmlInput = [1,2,3,4,5].map(i =>
-    `<div class="star${visitRating >= i ? ' active' : ''}" id="star-${i}" onclick="setVisitRating(${i}, ${restoId})">★</div>`
-  ).join('');
-
   const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -1596,31 +920,24 @@ function openVisitModal(restoId) {
         <label class="form-label">Fecha</label>
         <input type="date" id="v-date" class="form-input" value="${today}">
       </div>
-
       <div class="form-row">
         <label class="form-label">Nota</label>
-        <div class="star-row" id="star-row">${starsHtmlInput}</div>
+        <div class="star-row">
+          ${[1,2,3,4,5].map(i => `<div class="star" id="star-${i}" onclick="setVisitRating(${i})">★</div>`).join('')}
+        </div>
       </div>
-
       <div class="form-row">
         <label class="form-label">¿Quién fue?</label>
         <div class="user-toggle">
-          <div class="user-opt active" id="who-ambos" onclick="setWho('Ambos')">Ambos</div>
-          <div class="user-opt" id="who-valle" onclick="setWho('Valle')">Valle</div>
-          <div class="user-opt" id="who-jandro" onclick="setWho('Jandro')">Jandro</div>
+          <div class="user-opt active" id="who-Ambos" onclick="setWho('Ambos')">Ambos</div>
+          <div class="user-opt" id="who-Valle" onclick="setWho('Valle')">Valle</div>
+          <div class="user-opt" id="who-Jandro" onclick="setWho('Jandro')">Jandro</div>
         </div>
       </div>
-
-      <div class="form-2col">
-        <div class="form-row">
-          <label class="form-label">Gasto total (€)</label>
-          <input type="number" id="v-spent" class="form-input" placeholder="Ej: 45">
-        </div>
-        <div class="form-row" style="display:flex;flex-direction:column;justify-content:flex-end">
-          &nbsp;
-        </div>
+      <div class="form-row">
+        <label class="form-label">Gasto total (€)</label>
+        <input type="number" id="v-spent" class="form-input" placeholder="Ej: 45">
       </div>
-
       <div class="form-row">
         <label class="form-label">Notas de la visita</label>
         <textarea id="v-notes" class="form-input" placeholder="Qué pedimos, ambiente, servicio..."></textarea>
@@ -1629,20 +946,19 @@ function openVisitModal(restoId) {
       <button class="btn-primary" onclick="saveVisit(${restoId})">Guardar visita</button>
     </div>
   </div>`;
-
   document.getElementById('modal-container').innerHTML = html;
   window._visitWho = 'Ambos';
 }
 
-function setVisitRating(val, restoId) {
+function setVisitRating(val) {
   visitRating = val;
   document.querySelectorAll('.star').forEach((el, i) => el.classList.toggle('active', i < val));
 }
 
 function setWho(val) {
   window._visitWho = val;
-  ['ambos','valle','jandro'].forEach(k => {
-    document.getElementById('who-' + k)?.classList.toggle('active', k === val.toLowerCase());
+  document.querySelectorAll('.user-opt').forEach(el => {
+    el.classList.toggle('active', el.id === 'who-' + val);
   });
 }
 
@@ -1651,7 +967,6 @@ function saveVisit(restoId) {
   if (!r) return;
   const date = document.getElementById('v-date').value;
   if (!date) { showToast('Selecciona una fecha', true); return; }
-
   const visit = {
     id: Date.now(),
     date,
@@ -1660,7 +975,6 @@ function saveVisit(restoId) {
     totalSpent: parseFloat(document.getElementById('v-spent').value) || null,
     notes: document.getElementById('v-notes').value.trim()
   };
-
   if (!r.visits) r.visits = [];
   r.visits.push(visit);
   saveData(); closeModal(); render();
@@ -1671,44 +985,43 @@ function saveVisit(restoId) {
 // ADD FAV DISH MODAL
 // ================================================================
 function openAddFavDishModal(restoId) {
+  if (!restoId) { showToast('Selecciona un restaurante primero', true); return; }
+  const r = restaurants.find(x => x.id === restoId);
+  if (!r) return;
+
   const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-title">Plato favorito<button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;font-style:italic">${r.name}</div>
 
       <div class="form-row">
         <label class="form-label">Nombre del plato</label>
         <input id="fd-dish" class="form-input" placeholder="Ej: Risotto de setas">
       </div>
-
       <div class="form-row">
         <label class="form-label">¿De quién es favorito?</label>
         <div class="user-toggle">
-          <div class="user-opt active" id="fd-ambos" onclick="setFdUser('Ambos')">Ambos</div>
-          <div class="user-opt" id="fd-valle" onclick="setFdUser('Valle')">Valle</div>
-          <div class="user-opt" id="fd-jandro" onclick="setFdUser('Jandro')">Jandro</div>
+          <div class="user-opt active" id="fd-Ambos" onclick="setFdUser('Ambos')">Ambos</div>
+          <div class="user-opt" id="fd-Valle" onclick="setFdUser('Valle')">Valle</div>
+          <div class="user-opt" id="fd-Jandro" onclick="setFdUser('Jandro')">Jandro</div>
         </div>
       </div>
-
       <div class="form-row">
         <label class="form-label">Nota</label>
         <input id="fd-note" class="form-input" placeholder="Ej: Pedir siempre extra de queso">
       </div>
-
       <button class="btn-primary" onclick="saveFavDish(${restoId})">Guardar</button>
     </div>
   </div>`;
-
   document.getElementById('modal-container').innerHTML = html;
   window._fdUser = 'Ambos';
 }
 
-function openFavModal(id) { openAddFavDishModal(id || (restaurants[0]?.id)); }
-
 function setFdUser(val) {
   window._fdUser = val;
-  ['ambos','valle','jandro'].forEach(k => {
-    document.getElementById('fd-' + k)?.classList.toggle('active', k === val.toLowerCase());
+  document.querySelectorAll('.user-opt').forEach(el => {
+    el.classList.toggle('active', el.id === 'fd-' + val);
   });
 }
 
@@ -1720,16 +1033,22 @@ function saveFavDish(restoId) {
   if (!r.favDishes) r.favDishes = [];
   r.favDishes.push({ dish, user: window._fdUser || 'Ambos', note: document.getElementById('fd-note').value.trim() });
   saveData(); closeModal(); render();
-  showToast(`♥ "${dish}" guardado`);
+  showToast(`❤️ "${dish}" guardado`);
 }
 
 // ================================================================
-// VIEW: DIARY
+// VIEW: DIARY (con búsqueda)
 // ================================================================
 function renderDiary() {
-  const visits = allVisits();
+  const visits = allVisits().filter(v =>
+    !diarySearch || v.restaurantName.toLowerCase().includes(diarySearch.toLowerCase())
+  );
 
-  if (!visits.length) {
+  const searchHtml = `<div class="search-bar">
+    <input type="text" class="form-input" placeholder="🔍 Buscar en el diario..." value="${diarySearch}" oninput="updateDiarySearch(this.value)">
+  </div>`;
+
+  if (!allVisits().length) {
     return `<div class="empty-state">
       <div class="empty-icon">📖</div>
       <div class="empty-title">Diario vacío</div>
@@ -1745,19 +1064,15 @@ function renderDiary() {
   });
 
   const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let html = searchHtml;
 
-  let html = '';
   Object.entries(byMonth).sort((a, b) => b[0].localeCompare(a[0])).forEach(([key, monthVisits]) => {
     const [y, m] = key.split('-');
-    const monthLabel = `${monthNames[parseInt(m) - 1]} ${y}`;
     const total = monthVisits.reduce((a, v) => a + (v.totalSpent || 0), 0);
-    const avgRating = monthVisits.filter(v => v.rating).reduce((a, v) => a + v.rating, 0) / (monthVisits.filter(v => v.rating).length || 1);
-
     html += `<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline">
-      <div class="section-label" style="margin:0">${monthLabel}</div>
-      <div style="font-size:11px;color:var(--text-3)">${monthVisits.length} visita${monthVisits.length !== 1 ? 's' : ''} · ${total ? total.toFixed(0) + '€ gastados' : ''}</div>
+      <div class="section-label" style="margin:0">${monthNames[parseInt(m)-1]} ${y}</div>
+      <div style="font-size:11px;color:var(--text-3)">${monthVisits.length} visita${monthVisits.length !== 1 ? 's' : ''}${total ? ' · ' + total.toFixed(0) + '€' : ''}</div>
     </div>`;
-
     html += monthVisits.map(v => `
       <div class="diary-card" onclick="openRestaurantDetail(${v.restaurantId})">
         <div class="diary-date">${formatDate(v.date)}</div>
@@ -1775,15 +1090,13 @@ function renderDiary() {
   return html;
 }
 
-function openDiaryModal(id) {
-  if (!restaurants.filter(r => !r.pendingVisit).length) {
-    showToast('Añade un restaurante primero', true);
-    return;
-  }
+function updateDiarySearch(term) { diarySearch = term; render(); }
+
+function openDiaryModal() {
+  if (!restaurants.filter(r => !r.pendingVisit).length) { showToast('Añade un restaurante primero', true); return; }
   const restoOptions = restaurants.filter(r => !r.pendingVisit).map(r =>
     `<option value="${r.id}">${r.name}</option>`
   ).join('');
-
   const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -1799,18 +1112,18 @@ function openDiaryModal(id) {
 }
 
 // ================================================================
-// VIEW: DISCOVER (CON HORARIO)
+// VIEW: DISCOVER
 // ================================================================
 function renderDiscover() {
   const pending = restaurants.filter(r => r.pendingVisit);
   const visited = restaurants.filter(r => !r.pendingVisit);
-
   const today = new Date();
+
   const suggestions = visited.filter(r => {
     const visits = r.visits || [];
-    if (!visits.length) return true;
-    const last = new Date(visits.sort((a, b) => b.date.localeCompare(a.date))[0].date + 'T12:00:00');
-    return (today - last) / (1000 * 60 * 60 * 24) > 60;
+    if (!visits.length) return false;
+    const last = new Date(visits.slice().sort((a,b) => b.date.localeCompare(a.date))[0].date + 'T12:00:00');
+    return (today - last) / 86400000 > 60;
   }).slice(0, 4);
 
   let html = '';
@@ -1832,16 +1145,15 @@ function renderDiscover() {
   if (suggestions.length) {
     html += `<div class="section-label">Hace tiempo que no vas...</div>`;
     html += suggestions.map(r => {
-      const visits = r.visits || [];
-      const lastVisit = visits.length ? visits.sort((a, b) => b.date.localeCompare(a.date))[0] : null;
-      const daysSince = lastVisit ? Math.round((today - new Date(lastVisit.date + 'T12:00:00')) / (1000 * 60 * 60 * 24)) : null;
+      const lastVisit = r.visits.slice().sort((a,b) => b.date.localeCompare(a.date))[0];
+      const days = Math.round((today - new Date(lastVisit.date + 'T12:00:00')) / 86400000);
       return `<div class="pending-card" onclick="openRestaurantDetail(${r.id})">
         <div class="resto-stripe ${stripeClass(r.cuisine)}" style="width:4px;border-radius:2px;flex-shrink:0;min-height:40px"></div>
         <div style="flex:1;padding-left:8px">
           <div class="pending-name">${r.name}</div>
-          <div class="pending-meta">${r.cuisine || ''} · ${daysSince ? `Última visita hace ${daysSince} días` : 'Sin visitas'}</div>
+          <div class="pending-meta">${r.cuisine || ''} · Última visita hace ${days} días</div>
         </div>
-        <div style="font-size:11px;font-weight:700;color:var(--text-3);flex-shrink:0">${getRestaurantAvgRating(r) ? starsHtml(getRestaurantAvgRating(r), 10) : ''}</div>
+        <button onclick="event.stopPropagation();closeModal();openVisitModal(${r.id})" style="background:var(--bg-subtle);border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-2);cursor:pointer">Ir ahora</button>
       </div>`;
     }).join('');
   }
@@ -1850,46 +1162,37 @@ function renderDiscover() {
     html = `<div class="empty-state">
       <div class="empty-icon">🔍</div>
       <div class="empty-title">¡Todo al día!</div>
-      <div class="empty-sub">Añade restaurantes a tu lista de pendientes o espera a tener más historial</div>
+      <div class="empty-sub">Añade restaurantes pendientes o espera a tener más historial</div>
     </div>`;
   }
 
   return html;
 }
 
-function openPendingModal(id) {
+function openPendingModal() {
   const neighborhoodOpts = NEIGHBORHOODS.map(n => `<option>${n}</option>`).join('');
   const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-title">Quiero ir aquí<button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div class="form-row">
-        <label class="form-label">Nombre</label>
-        <input id="p-name" class="form-input" placeholder="Ej: El Bar de los Fueros">
-      </div>
+      <div class="form-row"><label class="form-label">Nombre</label><input id="p-name" class="form-input" placeholder="Ej: El Bar de los Fueros"></div>
       <div class="form-2col">
         <div class="form-row"><label class="form-label">Barrio</label><select id="p-neighborhood" class="form-input">${neighborhoodOpts}<option>Otro</option></select></div>
         <div class="form-row"><label class="form-label">Ciudad</label><input id="p-city" class="form-input" placeholder="Zaragoza" value="Zaragoza"></div>
       </div>
       <div class="form-row"><label class="form-label">País</label><input id="p-country" class="form-input" placeholder="España" value="España"></div>
-      <div class="form-row">
-        <label class="form-label">Tipo de cocina</label>
-        <select id="p-cuisine" class="form-input">${CUISINES.map(c => `<option>${c}</option>`).join('')}</select>
-      </div>
+      <div class="form-row"><label class="form-label">Tipo de cocina</label><select id="p-cuisine" class="form-input">${CUISINES.map(c => `<option>${c}</option>`).join('')}</select></div>
       <div class="form-row">
         <label class="form-label">Precio estimado</label>
-        <div class="price-selector" id="p-price-sel">
-          ${[1,2,3,4,5].map(i => `<div class="price-opt ${i === 2 ? 'active' : ''}" onclick="setPendingPrice(${i})" id="pp-${i}">${'€'.repeat(i)}</div>`).join('')}
-        </div>
+        <div class="price-selector">${[1,2,3,4,5].map(i => `<div class="price-opt ${i===2?'active':''}" onclick="setPendingPrice(${i})" id="pp-${i}">${'€'.repeat(i)}</div>`).join('')}</div>
       </div>
+      <div class="form-row"><label class="form-label">Horario</label><input id="p-hours" class="form-input" placeholder="Ej: L-V 13:00-16:00"></div>
       <div class="form-row">
-        <label class="form-label">Horario</label>
-        <input id="p-hours" class="form-input" placeholder="Ej: L-V 13:00-16:00, 20:00-23:00">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="p-terrace" style="width:16px;height:16px;accent-color:var(--accent)"> ☀️ Tiene terraza
+        </label>
       </div>
-      <div class="form-row">
-        <label class="form-label">Notas</label>
-        <textarea id="p-notes" class="form-input" placeholder="Por qué quieres ir, quién lo recomendó..."></textarea>
-      </div>
+      <div class="form-row"><label class="form-label">Notas</label><textarea id="p-notes" class="form-input" placeholder="Por qué quieres ir, quién lo recomendó..."></textarea></div>
       <button class="btn-primary" onclick="savePending()">Añadir a pendientes</button>
     </div>
   </div>`;
@@ -1913,9 +1216,9 @@ function savePending() {
     cuisine: document.getElementById('p-cuisine').value,
     priceLevel: window._pendingPrice || 2,
     hours: document.getElementById('p-hours').value.trim(),
+    terrace: document.getElementById('p-terrace')?.checked || false,
     notes: document.getElementById('p-notes').value.trim(),
-    pendingVisit: true,
-    favDishes: [], visits: []
+    pendingVisit: true, favDishes: [], visits: []
   };
   restaurants.unshift(r);
   saveData(); closeModal(); render();
@@ -1937,59 +1240,57 @@ function openPendingDetail(id) {
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-title">${r.name}<button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div style="font-size:12px;color:var(--text-2);margin-bottom:16px">${r.neighborhood || r.city || ''} · ${r.cuisine} · ${priceLabelHtml(r.priceLevel)}${r.hours ? `<br>🕒 ${r.hours}` : ''}</div>
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:16px">
+        ${[r.neighborhood || r.city, r.cuisine, priceLabelHtml(r.priceLevel), r.terrace ? '☀️ Terraza' : '', r.hours ? '🕒 ' + r.hours : ''].filter(Boolean).join(' · ')}
+      </div>
       ${r.notes ? `<div style="font-size:13px;color:var(--text-2);font-style:italic;margin-bottom:16px;padding:10px;background:var(--bg-subtle);border-radius:10px">${r.notes}</div>` : ''}
       <button class="btn-primary" onclick="closeModal();markAsVisited(${id})">✓ Ya fui — registrar visita</button>
       <button class="btn-secondary" onclick="closeModal();openRestaurantModal(${id})">✏️ Editar</button>
-      <button onclick="deleteRestaurant(${id})" class="btn-secondary" style="color:#DC2626;margin-top:8px">🗑 Eliminar</button>
+      <button onclick="confirmDeleteRestaurant(${id})" class="btn-secondary" style="color:#DC2626;margin-top:8px">🗑 Eliminar</button>
     </div>
   </div>`;
   document.getElementById('modal-container').innerHTML = html;
 }
 
 // ================================================================
-// VIEW: FAVORITES (CON BOTÓN RANKING)
+// VIEW: FAVORITES
 // ================================================================
 function renderFavorites() {
   const allFavs = [];
   restaurants.filter(r => !r.pendingVisit).forEach(r => {
-    (r.favDishes || []).forEach(f => {
-      allFavs.push({ ...f, restaurantName: r.name, restaurantId: r.id, cuisine: r.cuisine });
-    });
+    (r.favDishes || []).forEach(f => allFavs.push({ ...f, restaurantName: r.name, restaurantId: r.id, cuisine: r.cuisine }));
   });
 
-  const filterHtml = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-    <div class="filter-bar" style="margin-bottom:0; flex:1">
-      <div class="filter-pill ${filterFavUser === 'all' ? 'active' : ''}" onclick="setFilterFavUser('all')">Todos</div>
-      <div class="filter-pill ${filterFavUser === 'Valle' ? 'active' : ''}" onclick="setFilterFavUser('Valle')">♥ Valle</div>
-      <div class="filter-pill ${filterFavUser === 'Jandro' ? 'active' : ''}" onclick="setFilterFavUser('Jandro')">♥ Jandro</div>
-      <div class="filter-pill ${filterFavUser === 'Ambos' ? 'active' : ''}" onclick="setFilterFavUser('Ambos')">♥ Ambos</div>
-    </div>
-    <button class="ranking-btn" onclick="showRankingModal()">🏆 Ranking</button>
-  </div>`;
+  const filterHtml = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div class="filter-bar" style="margin-bottom:0;flex:1;min-width:0">
+        <div class="filter-pill ${filterFavUser==='all'?'active':''}" onclick="setFilterFavUser('all')">Todos</div>
+        <div class="filter-pill ${filterFavUser==='Valle'?'active':''}" onclick="setFilterFavUser('Valle')">❤️ Valle</div>
+        <div class="filter-pill ${filterFavUser==='Jandro'?'active':''}" onclick="setFilterFavUser('Jandro')">❤️ Jandro</div>
+        <div class="filter-pill ${filterFavUser==='Ambos'?'active':''}" onclick="setFilterFavUser('Ambos')">❤️ Ambos</div>
+      </div>
+      <button class="ranking-btn" onclick="showRankingModal()">🏆 Ranking</button>
+    </div>`;
 
   const filtered = filterFavUser === 'all' ? allFavs : allFavs.filter(f => f.user === filterFavUser);
 
   if (!filtered.length) {
     return filterHtml + `<div class="empty-state">
-      <div class="empty-icon">♥</div>
+      <div class="empty-icon">❤️</div>
       <div class="empty-title">Sin favoritos aún</div>
       <div class="empty-sub">Añade platos favoritos desde la ficha de cada restaurante</div>
     </div>`;
   }
 
   const grouped = {};
-  filtered.forEach(f => {
-    if (!grouped[f.cuisine]) grouped[f.cuisine] = [];
-    grouped[f.cuisine].push(f);
-  });
+  filtered.forEach(f => { if (!grouped[f.cuisine]) grouped[f.cuisine] = []; grouped[f.cuisine].push(f); });
 
   let html = filterHtml;
   Object.entries(grouped).sort().forEach(([cuisine, favs]) => {
     html += `<div class="section-label">${cuisine}</div>`;
     html += favs.map(f => `
       <div class="fav-card" onclick="openRestaurantDetail(${f.restaurantId})">
-        <div style="font-size:20px">♥</div>
+        <div style="font-size:20px">❤️</div>
         <div style="flex:1">
           <div class="fav-dish-name">${f.dish}</div>
           <div class="fav-resto">${f.restaurantName}${f.note ? ' · ' + f.note : ''}</div>
@@ -1997,41 +1298,39 @@ function renderFavorites() {
         <div class="fav-user-badge">${f.user || 'Ambos'}</div>
       </div>`).join('');
   });
-
   return html;
 }
 
 function setFilterFavUser(u) { filterFavUser = u; render(); }
 
 function showRankingModal() {
-  const visited = restaurants.filter(r => !r.pendingVisit);
-  const scored = visited.map(r => ({ ...r, foodieScore: calculateFoodieScore(r) })).sort((a, b) => b.foodieScore - a.foodieScore).slice(0, 10);
-  
-  const rankHtml = scored.map((r, i) => {
-    const medalClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    return `<div class="rank-item">
-      <div class="rank-num ${medalClass}">${i+1}</div>
-      <div class="rank-info">
-        <div class="rank-name">${r.name}</div>
-        <div class="rank-sub">${r.cuisine} · ${getRestaurantAvgRating(r) || 'N/A'} ★</div>
-      </div>
-      <div class="rank-score">${r.foodieScore}</div>
-    </div>`;
-  }).join('');
-  
-  const modalHtml = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  const scored = restaurants.filter(r => !r.pendingVisit)
+    .map(r => ({ ...r, foodieScore: calculateFoodieScore(r) }))
+    .sort((a, b) => b.foodieScore - a.foodieScore).slice(0, 10);
+
+  const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">🏆 Top 10 Foodie <button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div style="font-size:11px; color:var(--text-2); margin-bottom:12px">Basado en valoración, visitas, calidad-precio, platos favoritos y recencia</div>
-      ${rankHtml}
+      <div class="modal-title">🏆 Top 10 Foodie<button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div style="font-size:11px;color:var(--text-2);margin-bottom:12px">Basado en valoración, visitas, precio, favoritos y recencia</div>
+      ${scored.map((r, i) => {
+        const mc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+        return `<div class="rank-item">
+          <div class="rank-num ${mc}">${i+1}</div>
+          <div class="rank-info">
+            <div class="rank-name">${r.name}</div>
+            <div class="rank-sub">${r.cuisine} · ${getRestaurantAvgRating(r) || 'N/A'} ★</div>
+          </div>
+          <div class="rank-score">${r.foodieScore}</div>
+        </div>`;
+      }).join('')}
     </div>
   </div>`;
-  document.getElementById('modal-container').innerHTML = modalHtml;
+  document.getElementById('modal-container').innerHTML = html;
 }
 
 // ================================================================
-// VIEW: ROULETTE (CON FILTROS POR BARRIO Y "¿QUÉ ME APETECE?")
+// VIEW: ROULETTE
 // ================================================================
 function renderRoulette() {
   const candidates = getRouletteRestaurants();
@@ -2039,83 +1338,98 @@ function renderRoulette() {
   const cuisines = getUniqueCuisines();
   const neighborhoods = getUniqueNeighborhoods();
 
-  // Sección ¿Qué me apetece?
-  const wiqHtml = `
-    <div class="what-i-want">
-      <div class="section-label" style="margin-bottom:8px">🍕 ¿Qué me apetece?</div>
-      <div class="wiq-question"><label>¿Bar o restaurante?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.type === 'bar' ? 'active' : ''}" onclick="setWiqFilter('type', 'bar')">Bar/Tapas</div><div class="wiq-opt ${wiqFilters.type === 'restaurant' ? 'active' : ''}" onclick="setWiqFilter('type', 'restaurant')">Restaurante</div><div class="wiq-opt ${wiqFilters.type === null ? 'active' : ''}" onclick="setWiqFilter('type', null)">Cualquiera</div></div></div>
-      <div class="wiq-question"><label>¿Rápido o tranquilo?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.speed === 'fast' ? 'active' : ''}" onclick="setWiqFilter('speed', 'fast')">Rápido</div><div class="wiq-opt ${wiqFilters.speed === 'slow' ? 'active' : ''}" onclick="setWiqFilter('speed', 'slow')">Tranquilo</div><div class="wiq-opt ${wiqFilters.speed === null ? 'active' : ''}" onclick="setWiqFilter('speed', null)">Cualquiera</div></div></div>
-      <div class="wiq-question"><label>¿Menos de 20€?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.budget === true ? 'active' : ''}" onclick="setWiqFilter('budget', true)">Sí</div><div class="wiq-opt ${wiqFilters.budget === false ? 'active' : ''}" onclick="setWiqFilter('budget', false)">No</div><div class="wiq-opt ${wiqFilters.budget === null ? 'active' : ''}" onclick="setWiqFilter('budget', null)">Cualquiera</div></div></div>
-      <div class="wiq-question"><label>¿Con terraza?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.terrace === true ? 'active' : ''}" onclick="setWiqFilter('terrace', true)">Sí</div><div class="wiq-opt ${wiqFilters.terrace === false ? 'active' : ''}" onclick="setWiqFilter('terrace', false)">No</div><div class="wiq-opt ${wiqFilters.terrace === null ? 'active' : ''}" onclick="setWiqFilter('terrace', null)">Cualquiera</div></div></div>
-      <div class="wiq-question"><label>¿Qué tipo de comida?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.cuisine === null ? 'active' : ''}" onclick="setWiqFilter('cuisine', null)">Cualquiera</div>${cuisines.slice(0,6).map(c => `<div class="wiq-opt ${wiqFilters.cuisine === c ? 'active' : ''}" onclick="setWiqFilter('cuisine', '${c}')">${c}</div>`).join('')}</div></div>
-      <button class="btn-ghost" style="margin-top:8px" onclick="applyWiqFilters()">🔍 Ver recomendaciones</button>
-      <div id="wiq-results" class="wiq-results" style="margin-top:12px"></div>
-    </div>
-  `;
+  const wiqHtml = `<div class="what-i-want">
+    <div class="section-label" style="margin-bottom:8px">🍕 ¿Qué me apetece?</div>
+    <div class="wiq-question"><label>¿Bar o restaurante?</label><div class="wiq-options">
+      <div class="wiq-opt ${wiqFilters.type==='bar'?'active':''}" onclick="setWiqFilter('type','bar')">Bar/Tapas</div>
+      <div class="wiq-opt ${wiqFilters.type==='restaurant'?'active':''}" onclick="setWiqFilter('type','restaurant')">Restaurante</div>
+      <div class="wiq-opt ${wiqFilters.type===null?'active':''}" onclick="setWiqFilter('type',null)">Cualquiera</div>
+    </div></div>
+    <div class="wiq-question"><label>¿Rápido o tranquilo?</label><div class="wiq-options">
+      <div class="wiq-opt ${wiqFilters.speed==='fast'?'active':''}" onclick="setWiqFilter('speed','fast')">Rápido</div>
+      <div class="wiq-opt ${wiqFilters.speed==='slow'?'active':''}" onclick="setWiqFilter('speed','slow')">Tranquilo</div>
+      <div class="wiq-opt ${wiqFilters.speed===null?'active':''}" onclick="setWiqFilter('speed',null)">Cualquiera</div>
+    </div></div>
+    <div class="wiq-question"><label>¿Menos de 20€?</label><div class="wiq-options">
+      <div class="wiq-opt ${wiqFilters.budget===true?'active':''}" onclick="setWiqFilter('budget',true)">Sí</div>
+      <div class="wiq-opt ${wiqFilters.budget===false?'active':''}" onclick="setWiqFilter('budget',false)">No</div>
+      <div class="wiq-opt ${wiqFilters.budget===null?'active':''}" onclick="setWiqFilter('budget',null)">Cualquiera</div>
+    </div></div>
+    <div class="wiq-question"><label>¿Con terraza?</label><div class="wiq-options">
+      <div class="wiq-opt ${wiqFilters.terrace===true?'active':''}" onclick="setWiqFilter('terrace',true)">Sí</div>
+      <div class="wiq-opt ${wiqFilters.terrace===false?'active':''}" onclick="setWiqFilter('terrace',false)">No</div>
+      <div class="wiq-opt ${wiqFilters.terrace===null?'active':''}" onclick="setWiqFilter('terrace',null)">Cualquiera</div>
+    </div></div>
+    <div class="wiq-question"><label>¿Tipo de cocina?</label><div class="wiq-options">
+      <div class="wiq-opt ${wiqFilters.cuisine===null?'active':''}" onclick="setWiqFilter('cuisine',null)">Cualquiera</div>
+      ${cuisines.slice(0,6).map(c => `<div class="wiq-opt ${wiqFilters.cuisine===c?'active':''}" onclick="setWiqFilter('cuisine','${c}')">${c}</div>`).join('')}
+    </div></div>
+    <button class="btn-ghost" style="margin-top:8px" onclick="applyWiqFilters()">🔍 Ver recomendaciones</button>
+    <div id="wiq-results" style="margin-top:12px"></div>
+  </div>`;
 
-  const filterHtml = `
-    <div class="card card-padded" style="margin-bottom:12px">
-      <div class="section-label" style="margin-bottom:8px">Filtros ruleta</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-        <select class="form-input" style="flex:1" onchange="rouletteFilters.cuisine=this.value;render();setTimeout(drawRoulette,50)">
-          <option value="all">Toda cocina</option>
-          ${cuisines.map(c => `<option value="${c}" ${rouletteFilters.cuisine === c ? 'selected' : ''}>${c}</option>`).join('')}
-        </select>
-        <select class="form-input" style="flex:1" onchange="rouletteFilters.neighborhood=this.value;render();setTimeout(drawRoulette,50)">
-          <option value="all">Todos los barrios</option>
-          ${neighborhoods.map(n => `<option value="${n}" ${rouletteFilters.neighborhood === n ? 'selected' : ''}>${n}</option>`).join('')}
-        </select>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-        <select class="form-input" style="flex:1" onchange="rouletteFilters.city=this.value;render();setTimeout(drawRoulette,50)">
-          <option value="all">Toda ciudad</option>
-          ${cities.map(c => `<option value="${c}" ${rouletteFilters.city === c ? 'selected' : ''}>${c}</option>`).join('')}
-        </select>
-      </div>
-      <div class="filter-bar" style="margin-bottom:0">
-        ${[{v:'all',l:'Cualquier precio'},{v:'1',l:'€'},{v:'2',l:'€€'},{v:'3',l:'€€€'},{v:'4-5',l:'€€€€+'}].map(p =>
-          `<div class="filter-pill ${rouletteFilters.price === p.v ? 'active' : ''}" onclick="rouletteFilters.price='${p.v}';render();setTimeout(drawRoulette,50)">${p.l}</div>`
-        ).join('')}
-      </div>
-    </div>`;
+  const filterHtml = `<div class="card card-padded" style="margin-bottom:12px">
+    <div class="section-label" style="margin-bottom:8px">Filtros ruleta</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <select class="form-input" style="flex:1" onchange="rouletteFilters.cuisine=this.value;render();setTimeout(drawRoulette,50)">
+        <option value="all">Toda cocina</option>
+        ${cuisines.map(c => `<option value="${c}" ${rouletteFilters.cuisine===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <select class="form-input" style="flex:1" onchange="rouletteFilters.neighborhood=this.value;render();setTimeout(drawRoulette,50)">
+        <option value="all">Todos los barrios</option>
+        ${neighborhoods.map(n => `<option value="${n}" ${rouletteFilters.neighborhood===n?'selected':''}>${n}</option>`).join('')}
+      </select>
+    </div>
+    <div class="filter-bar" style="margin-bottom:0">
+      ${[['all','Cualquier precio'],['1','€'],['2','€€'],['3','€€€'],['4-5','€€€€+']].map(([v,l]) =>
+        `<div class="filter-pill ${rouletteFilters.price===v?'active':''}" onclick="rouletteFilters.price='${v}';render();setTimeout(drawRoulette,50)">${l}</div>`
+      ).join('')}
+    </div>
+  </div>`;
 
   return `${wiqHtml}${filterHtml}
     <div class="roulette-wrap">
       <canvas id="roulette-canvas" width="280" height="280"></canvas>
       <button class="roulette-btn" onclick="spinRoulette()" ${candidates.length < 2 ? 'disabled style="opacity:0.5"' : ''}>
-        ${candidates.length < 2 ? 'Pocos restaurantes' : '🎰 ¡Girar!'}
+        ${candidates.length < 2 ? 'Pocos restaurantes' : '🎲 ¡Girar!'}
       </button>
       <div class="roulette-result" id="roulette-result">${rouletteResult ? rouletteResult.name : ''}</div>
-      <div class="roulette-result-meta" id="roulette-result-meta">${rouletteResult ? `${rouletteResult.cuisine} · ${rouletteResult.neighborhood || rouletteResult.city} · ${priceLabelHtml(rouletteResult.priceLevel)}` : (candidates.length ? `${candidates.length} restaurantes en juego` : 'Sin restaurantes con estos filtros')}</div>
+      <div class="roulette-result-meta" id="roulette-result-meta">${rouletteResult
+        ? `${rouletteResult.cuisine} · ${rouletteResult.neighborhood || rouletteResult.city} · ${priceLabelHtml(rouletteResult.priceLevel)}`
+        : (candidates.length ? `${candidates.length} restaurantes en juego` : 'Sin restaurantes con estos filtros')
+      }</div>
       ${rouletteResult ? `<button class="btn-secondary" style="max-width:220px;margin-top:8px" onclick="openRestaurantDetail(${rouletteResult.id})">Ver restaurante →</button>` : ''}
     </div>`;
 }
 
-function setWiqFilter(key, value) {
-  wiqFilters[key] = value;
-  render();
-}
+function setWiqFilter(key, value) { wiqFilters[key] = value; render(); }
 
 function applyWiqFilters() {
   let filtered = restaurants.filter(r => !r.pendingVisit);
-  
   if (wiqFilters.type === 'bar') filtered = filtered.filter(r => r.priceLevel <= 2);
   if (wiqFilters.type === 'restaurant') filtered = filtered.filter(r => r.priceLevel >= 3);
-  if (wiqFilters.speed === 'fast') filtered = filtered.filter(r => r.cuisine === 'Americana' || r.cuisine === 'Española' || r.priceLevel <= 2);
+  if (wiqFilters.speed === 'fast') filtered = filtered.filter(r => r.priceLevel <= 2);
   if (wiqFilters.speed === 'slow') filtered = filtered.filter(r => r.priceLevel >= 3);
   if (wiqFilters.budget === true) filtered = filtered.filter(r => r.priceLevel <= 2);
   if (wiqFilters.budget === false) filtered = filtered.filter(r => r.priceLevel >= 3);
+  if (wiqFilters.terrace === true) filtered = filtered.filter(r => r.terrace);
+  if (wiqFilters.terrace === false) filtered = filtered.filter(r => !r.terrace);
   if (wiqFilters.cuisine) filtered = filtered.filter(r => r.cuisine === wiqFilters.cuisine);
-  
-  const resultsHtml = filtered.slice(0,5).map(r => `
-    <div class="pending-card" onclick="openRestaurantDetail(${r.id})" style="padding:8px">
-      <div style="flex:1">
-        <div class="pending-name">${r.name}</div>
-        <div class="pending-meta">${r.cuisine} · ${r.neighborhood || r.city} · ${priceDotsHtml(r.priceLevel)}</div>
+
+  filtered.sort((a, b) => calculateFoodieScore(b) - calculateFoodieScore(a));
+
+  const resultsHtml = filtered.slice(0, 5).map(r => `
+    <div class="pending-card" onclick="openRestaurantDetail(${r.id})" style="padding:10px">
+      <div class="resto-stripe ${stripeClass(r.cuisine)}" style="width:4px;border-radius:2px;flex-shrink:0;min-height:36px"></div>
+      <div style="flex:1;padding-left:8px">
+        <div class="pending-name" style="font-size:14px">${r.name}</div>
+        <div class="pending-meta">${r.cuisine} · ${r.neighborhood || r.city} · ${priceLabelHtml(r.priceLevel)}${r.terrace ? ' · ☀️' : ''}</div>
       </div>
+      ${getRestaurantAvgRating(r) ? `<div style="font-size:11px;font-weight:700;color:var(--accent)">${getRestaurantAvgRating(r)}★</div>` : ''}
     </div>`).join('');
-  
-  document.getElementById('wiq-results').innerHTML = `<div class="section-label">Te recomendamos (${filtered.length})</div>${resultsHtml || '<div class="empty-sub">No hay coincidencias</div>'}`;
+
+  document.getElementById('wiq-results').innerHTML =
+    `<div class="section-label">Te recomendamos (${filtered.length})</div>${resultsHtml || '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:12px">No hay coincidencias</div>'}`;
 }
 
 function getRouletteRestaurants() {
@@ -2140,54 +1454,31 @@ function drawRoulette() {
   const ctx = canvas.getContext('2d');
   const candidates = getRouletteRestaurants();
   const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 4;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!candidates.length) {
-    ctx.fillStyle = 'var(--border)';
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'var(--border)'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#888'; ctx.font = '14px Inter'; ctx.textAlign = 'center';
-    ctx.fillText('Sin opciones', cx, cy);
-    return;
+    ctx.fillText('Sin opciones', cx, cy); return;
   }
 
   const slice = (Math.PI * 2) / candidates.length;
-
   candidates.forEach((rest, i) => {
-    const startAngle = i * slice + rouletteAngle;
-    const endAngle = startAngle + slice;
-
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, startAngle, endAngle);
-    ctx.closePath();
-    ctx.fillStyle = ROULETTE_COLORS[i % ROULETTE_COLORS.length];
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(startAngle + slice / 2);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#fff';
+    const startAngle = i * slice + rouletteAngle, endAngle = startAngle + slice;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, startAngle, endAngle); ctx.closePath();
+    ctx.fillStyle = ROULETTE_COLORS[i % ROULETTE_COLORS.length]; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(startAngle + slice / 2);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#fff';
     ctx.font = `bold ${candidates.length > 8 ? 10 : 12}px Inter`;
-    const maxLen = 14;
-    const label = rest.name.length > maxLen ? rest.name.slice(0, maxLen - 1) + '…' : rest.name;
-    ctx.fillText(label, r - 10, 4);
-    ctx.restore();
+    const label = rest.name.length > 14 ? rest.name.slice(0, 13) + '…' : rest.name;
+    ctx.fillText(label, r - 10, 4); ctx.restore();
   });
 
   ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2);
   ctx.fillStyle = 'var(--bg-card)'; ctx.fill();
   ctx.strokeStyle = 'var(--border)'; ctx.lineWidth = 2; ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(cx + r - 2, cy);
-  ctx.lineTo(cx + r + 14, cy - 7);
-  ctx.lineTo(cx + r + 14, cy + 7);
-  ctx.closePath();
+  ctx.beginPath(); ctx.moveTo(cx + r - 2, cy); ctx.lineTo(cx + r + 14, cy - 7); ctx.lineTo(cx + r + 14, cy + 7); ctx.closePath();
   ctx.fillStyle = 'var(--text)'; ctx.fill();
 }
 
@@ -2195,62 +1486,52 @@ function spinRoulette() {
   if (rouletteSpinning) return;
   const candidates = getRouletteRestaurants();
   if (candidates.length < 2) return;
-
-  rouletteSpinning = true;
-  rouletteResult = null;
+  rouletteSpinning = true; rouletteResult = null;
   document.getElementById('roulette-result').textContent = '';
   document.getElementById('roulette-result-meta').textContent = '...';
-
-  const spins = 5 + Math.random() * 5;
-  const totalAngle = spins * Math.PI * 2;
-  const duration = 3500;
-  const start = performance.now();
-  const startAngle = rouletteAngle;
-
+  const totalAngle = (5 + Math.random() * 5) * Math.PI * 2;
+  const duration = 3500, start = performance.now(), startAngle = rouletteAngle;
   function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
-
   function animate(now) {
     const t = Math.min((now - start) / duration, 1);
     rouletteAngle = startAngle + totalAngle * easeOut(t);
     drawRoulette();
-    if (t < 1) {
-      requestAnimationFrame(animate);
-    } else {
+    if (t < 1) { requestAnimationFrame(animate); }
+    else {
       rouletteSpinning = false;
       const slice = (Math.PI * 2) / candidates.length;
-      const normalizedAngle = ((rouletteAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const idx = candidates.length - 1 - Math.floor(normalizedAngle / slice) % candidates.length;
-      rouletteResult = candidates[Math.abs(idx) % candidates.length];
-      render();
-      setTimeout(drawRoulette, 50);
+      const norm = ((rouletteAngle % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+      const idx = Math.abs(candidates.length - 1 - Math.floor(norm / slice) % candidates.length) % candidates.length;
+      rouletteResult = candidates[idx];
+      render(); setTimeout(drawRoulette, 50);
     }
   }
-
   requestAnimationFrame(animate);
 }
 
-function openRouletteFilters() {
-  showToast('Usa los filtros de arriba para personalizar la ruleta');
-}
+function openRouletteFilters() { showToast('Usa los filtros de arriba para personalizar la ruleta'); }
 
 // ================================================================
-// VIEW: MORE (Recetas + Scanner + Stats con Índice Foodie + Settings + Mapa)
+// VIEW: MORE
 // ================================================================
 let moreTab = 'recipes';
 let chartInstances = {};
 let mapInitialized = false;
+let mapInstance = null;
+let expandedRecipe = null;
 
 function renderMore() {
   const tabs = [
     { id: 'recipes', icon: '🍳', label: 'Recetas' },
     { id: 'scanner', icon: '📷', label: 'Scanner' },
-    { id: 'stats', icon: '📊', label: 'Stats' },
-    { id: 'map', icon: '🗺️', label: 'Mapa' },
-    { id: 'settings', icon: '⚙️', label: 'Ajustes' }
+    { id: 'stats',   icon: '📊', label: 'Stats' },
+    { id: 'map',     icon: '🗺️', label: 'Mapa' },
+    { id: 'settings',icon: '⚙️', label: 'Ajustes' }
   ];
-
   const tabsHtml = `<div class="modal-tab-row">
-    ${tabs.map(t => `<div class="modal-tab ${moreTab === t.id ? 'active' : ''}" onclick="setMoreTab('${t.id}')">${t.icon} ${t.label}</div>`).join('')}
+    ${tabs.map(t => `<div class="modal-tab ${moreTab===t.id?'active':''}" onclick="setMoreTab('${t.id}')">
+      <span class="tab-icon">${t.icon}</span><span>${t.label}</span>
+    </div>`).join('')}
   </div>`;
 
   let content = '';
@@ -2259,57 +1540,46 @@ function renderMore() {
   else if (moreTab === 'stats') content = renderStatsWithFoodieIndex();
   else if (moreTab === 'map') content = renderMap();
   else if (moreTab === 'settings') content = renderSettings();
-
   return tabsHtml + content;
 }
 
 function setMoreTab(tab) {
-  moreTab = tab;
-  render();
+  moreTab = tab; render();
   if (tab === 'stats') setTimeout(initStatsCharts, 80);
-  if (tab === 'map') setTimeout(renderMap, 100);
+  if (tab === 'map') setTimeout(initMap, 120);
 }
 
 // --- RECIPES ---
-let expandedRecipe = null;
-
 function renderRecipes() {
   const addBtn = `<button class="btn-ghost" onclick="openRecipeModal(null)" style="margin-bottom:14px">+ Nueva receta</button>`;
-
   if (!recipes.length) {
-    return addBtn + `<div class="empty-state">
-      <div class="empty-icon">🍳</div>
-      <div class="empty-title">Sin recetas</div>
-      <div class="empty-sub">Guarda tus recetas favoritas aquí</div>
-    </div>`;
+    return addBtn + `<div class="empty-state"><div class="empty-icon">🍳</div><div class="empty-title">Sin recetas</div><div class="empty-sub">Guarda tus recetas favoritas aquí</div></div>`;
   }
-
   return addBtn + recipes.map(r => {
     const isOpen = expandedRecipe === r.id;
     return `<div class="recipe-card">
-      <div onclick="expandedRecipe=${isOpen ? 'null' : r.id};render()">
+      <div onclick="expandedRecipe=${isOpen?'null':r.id};render()">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div class="recipe-name">${r.name}</div>
-          <span style="color:var(--text-3);font-size:14px">${isOpen ? '▲' : '▼'}</span>
+          <span style="color:var(--text-3);font-size:14px">${isOpen?'▲':'▼'}</span>
         </div>
         <div class="recipe-meta">
-          <span class="tag">${r.cuisine || 'General'}</span>
-          ${r.time ? `<span>⏱ ${r.time} min</span>` : ''}
-          ${r.difficulty ? `<span>💪 ${r.difficulty}</span>` : ''}
-          ${r.servings ? `<span>👥 ${r.servings} pers.</span>` : ''}
+          <span class="tag">${r.cuisine||'General'}</span>
+          ${r.time?`<span>⏱ ${r.time} min</span>`:''}
+          ${r.difficulty?`<span>💪 ${r.difficulty}</span>`:''}
+          ${r.servings?`<span>👥 ${r.servings} pers.</span>`:''}
         </div>
       </div>
-      ${isOpen ? `<div class="recipe-ingredient-list">
+      ${isOpen?`<div class="recipe-ingredient-list">
         <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-3);margin-bottom:6px">Ingredientes</div>
-        <div style="white-space:pre-wrap">${r.ingredients || '—'}</div>
-        ${r.steps ? `<div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-3);margin-top:12px;margin-bottom:6px">Preparación</div>
-        <div style="white-space:pre-wrap">${r.steps}</div>` : ''}
-        ${r.notes ? `<div style="margin-top:10px;font-style:italic;color:var(--text-2)">💡 ${r.notes}</div>` : ''}
+        <div style="white-space:pre-wrap">${r.ingredients||'—'}</div>
+        ${r.steps?`<div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-3);margin-top:12px;margin-bottom:6px">Preparación</div><div style="white-space:pre-wrap">${r.steps}</div>`:''}
+        ${r.notes?`<div style="margin-top:10px;font-style:italic;color:var(--text-2)">💡 ${r.notes}</div>`:''}
         <div style="display:flex;gap:8px;margin-top:12px">
           <button onclick="event.stopPropagation();openRecipeModal(${r.id})" class="btn-secondary" style="flex:1;margin:0;padding:10px;font-size:12px">✏️ Editar</button>
-          <button onclick="event.stopPropagation();deleteRecipe(${r.id})" style="background:none;border:1.5px solid #FCA5A5;border-radius:var(--radius-sm);padding:10px 14px;color:#DC2626;cursor:pointer;font-size:12px">🗑</button>
+          <button onclick="event.stopPropagation();confirmDeleteRecipe(${r.id})" class="btn-danger" style="padding:10px 14px">🗑</button>
         </div>
-      </div>` : ''}
+      </div>`:''}
     </div>`;
   }).join('');
 }
@@ -2319,25 +1589,20 @@ function openRecipeModal(id) {
   const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">${id ? 'Editar receta' : 'Nueva receta'}<button class="modal-close" onclick="closeModal()">✕</button></div>
-
-      <div class="form-row"><label class="form-label">Nombre</label><input id="rc-name" class="form-input" placeholder="Ej: Risotto de setas" value="${r?.name || ''}"></div>
+      <div class="modal-title">${id?'Editar receta':'Nueva receta'}<button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="form-row"><label class="form-label">Nombre</label><input id="rc-name" class="form-input" placeholder="Ej: Risotto de setas" value="${r?.name||''}"></div>
       <div class="form-2col">
-        <div class="form-row"><label class="form-label">Cocina</label><select id="rc-cuisine" class="form-input">${CUISINES.map(c => `<option ${r?.cuisine === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-        <div class="form-row"><label class="form-label">Tiempo (min)</label><input type="number" id="rc-time" class="form-input" placeholder="30" value="${r?.time || ''}"></div>
+        <div class="form-row"><label class="form-label">Cocina</label><select id="rc-cuisine" class="form-input">${CUISINES.map(c=>`<option ${r?.cuisine===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="form-row"><label class="form-label">Tiempo (min)</label><input type="number" id="rc-time" class="form-input" placeholder="30" value="${r?.time||''}"></div>
       </div>
       <div class="form-2col">
-        <div class="form-row"><label class="form-label">Dificultad</label>
-          <select id="rc-diff" class="form-input">
-            ${['Fácil','Media','Difícil'].map(d => `<option ${r?.difficulty === d ? 'selected' : ''}>${d}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-row"><label class="form-label">Personas</label><input type="number" id="rc-servings" class="form-input" placeholder="2" value="${r?.servings || ''}"></div>
+        <div class="form-row"><label class="form-label">Dificultad</label><select id="rc-diff" class="form-input">${['Fácil','Media','Difícil'].map(d=>`<option ${r?.difficulty===d?'selected':''}>${d}</option>`).join('')}</select></div>
+        <div class="form-row"><label class="form-label">Personas</label><input type="number" id="rc-servings" class="form-input" placeholder="2" value="${r?.servings||''}"></div>
       </div>
-      <div class="form-row"><label class="form-label">Ingredientes</label><textarea id="rc-ingredients" class="form-input" rows="4" placeholder="- 200g arroz&#10;- 1 cebolla...">${r?.ingredients || ''}</textarea></div>
-      <div class="form-row"><label class="form-label">Preparación</label><textarea id="rc-steps" class="form-input" rows="5" placeholder="1. Pochar la cebolla...">${r?.steps || ''}</textarea></div>
-      <div class="form-row"><label class="form-label">Notas</label><textarea id="rc-notes" class="form-input" placeholder="Trucos, variaciones...">${r?.notes || ''}</textarea></div>
-      <button class="btn-primary" onclick="saveRecipe(${id || 'null'})">Guardar</button>
+      <div class="form-row"><label class="form-label">Ingredientes</label><textarea id="rc-ingredients" class="form-input" rows="4" placeholder="- 200g arroz&#10;- 1 cebolla...">${r?.ingredients||''}</textarea></div>
+      <div class="form-row"><label class="form-label">Preparación</label><textarea id="rc-steps" class="form-input" rows="5" placeholder="1. Pochar la cebolla...">${r?.steps||''}</textarea></div>
+      <div class="form-row"><label class="form-label">Notas</label><textarea id="rc-notes" class="form-input" placeholder="Trucos, variaciones...">${r?.notes||''}</textarea></div>
+      <button class="btn-primary" onclick="saveRecipe(${id||'null'})">Guardar</button>
     </div>
   </div>`;
   document.getElementById('modal-container').innerHTML = html;
@@ -2355,25 +1620,26 @@ function saveRecipe(id) {
     ingredients: document.getElementById('rc-ingredients').value.trim(),
     steps: document.getElementById('rc-steps').value.trim(),
     notes: document.getElementById('rc-notes').value.trim(),
-    createdAt: id ? (recipes.find(r => r.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+    createdAt: id ? (recipes.find(r=>r.id===id)?.createdAt||new Date().toISOString()) : new Date().toISOString()
   };
   const idx = recipes.findIndex(r => r.id === data.id);
-  if (idx >= 0) recipes[idx] = data;
-  else recipes.unshift(data);
+  if (idx >= 0) recipes[idx] = data; else recipes.unshift(data);
   saveData(); closeModal(); render();
   showToast(`"${name}" guardada ✓`);
 }
 
-function deleteRecipe(id) {
-  if (!confirm('¿Eliminar esta receta?')) return;
-  recipes = recipes.filter(r => r.id !== id);
-  saveData(); render();
-  showToast('Receta eliminada');
+function confirmDeleteRecipe(id) {
+  const r = recipes.find(x => x.id === id);
+  showConfirm('Eliminar receta', `¿Eliminar "${r?.name}"?`, () => {
+    recipes = recipes.filter(r => r.id !== id);
+    saveData(); render();
+    showToast('Receta eliminada');
+  });
 }
 
-// --- SCANNER ---
+// --- SCANNER / TICKETS ---
 function renderScanner() {
-  const html = `<div>
+  return `<div>
     <div class="scanner-area" onclick="document.getElementById('scan-file').click()">
       <div style="font-size:36px;margin-bottom:10px">📷</div>
       <div style="font-weight:600;font-size:14px;color:var(--text-2)">Fotografiar ticket</div>
@@ -2382,153 +1648,176 @@ function renderScanner() {
     <button class="btn-ghost" onclick="openManualTicket()">✏️ Introducir ticket manualmente</button>
     <div class="divider"></div>
     <div class="section-label">Tickets guardados (${tickets.length})</div>
-    ${tickets.length ? tickets.slice().sort((a,b) => b.date.localeCompare(a.date)).map(renderTicketCard).join('') : '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:20px">Sin tickets guardados</div>'}
+    ${tickets.length ? tickets.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(renderTicketCard).join('') : '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:20px">Sin tickets guardados</div>'}
   </div>`;
-  return html;
 }
 
 function handleScan(e) {
   const file = e.target.files[0];
   if (!file) return;
   showToast('Procesando imagen...');
-  setTimeout(() => {
-    openManualTicket();
-    showToast('Completa los datos del ticket');
-  }, 800);
+  setTimeout(() => { openManualTicket(); showToast('Completa los datos del ticket'); }, 800);
   e.target.value = '';
 }
 
 function openManualTicket() {
   const today = new Date().toISOString().slice(0, 10);
-  const restoOptions = restaurants.filter(r => !r.pendingVisit).map(r =>
-    `<option value="${r.id}">${r.name}</option>`
-  ).join('');
-
   const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-title">Nuevo ticket<button class="modal-close" onclick="closeModal()">✕</button></div>
 
       <div class="form-2col">
-        <div class="form-row"><label class="form-label">Fecha</label><input type="date" id="tk-date" class="form-input" value="${today}"></div>
-        <div class="form-row"><label class="form-label">Total (€)</label><input type="number" step="0.01" id="tk-total" class="form-input" placeholder="45.80"></div>
+        <div class="form-row">
+          <label class="form-label">Fecha</label>
+          <input type="date" id="tk-date" class="form-input" value="${today}">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Total (€)</label>
+          <input type="number" step="0.01" id="tk-total" class="form-input" placeholder="45.80">
+        </div>
       </div>
 
       <div class="form-row">
         <label class="form-label">Restaurante</label>
-        <select id="tk-resto" class="form-input">
-          <option value="">— Ninguno —</option>
-          ${restoOptions}
-        </select>
+        <input id="tk-search" class="form-input" placeholder="🔍 Buscar restaurante..." oninput="filterTicketRestos(this.value)" autocomplete="off">
+        <div id="tk-resto-list" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px"></div>
+        <div id="tk-resto-selected" style="display:none;margin-top:6px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;font-size:13px;font-weight:600;color:var(--accent)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span id="tk-resto-selected-name"></span>
+            <button onclick="clearTicketResto()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;padding:0 0 0 8px">✕</button>
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
-        <label class="form-label">Nombre (si no está en la lista)</label>
-        <input id="tk-name" class="form-input" placeholder="Ej: Restaurante La Mar">
+        <label class="form-label">Detalle de platos <span style="font-weight:400;color:var(--text-3);font-size:9px">(nombre · precio)</span></label>
+        <textarea id="tk-items" class="form-input" rows="4" placeholder="Entrante · 12.50€&#10;Pasta · 18.00€&#10;Vino · 15.30€"></textarea>
       </div>
-
-      <div class="form-row">
-        <label class="form-label">Detalle de platos (uno por línea)</label>
-        <textarea id="tk-items" class="form-input" rows="5" placeholder="Entrante · 12.50€&#10;Pasta · 18.00€&#10;Vino · 15.30€"></textarea>
-      </div>
-
       <div class="form-row">
         <label class="form-label">Notas</label>
         <input id="tk-notes" class="form-input" placeholder="Ej: Cumpleaños de Valle">
       </div>
-
       <button class="btn-primary" onclick="saveTicket()">Guardar ticket</button>
     </div>
   </div>`;
   document.getElementById('modal-container').innerHTML = html;
+  window._ticketRestoId = null;
+  window._ticketRestoName = null;
+  filterTicketRestos('');
+}
+
+function filterTicketRestos(term) {
+  const list = document.getElementById('tk-resto-list');
+  if (!list) return;
+  const visited = restaurants.filter(r => !r.pendingVisit);
+  const matches = term
+    ? visited.filter(r => r.name.toLowerCase().includes(term.toLowerCase())).slice(0, 8)
+    : visited.slice(0, 8);
+  list.innerHTML = matches.map(r =>
+    `<div onclick="selectTicketResto(${r.id},'${r.name.replace(/'/g,"\\'")}')"
+      style="padding:6px 12px;background:var(--bg-subtle);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text-2)">
+      ${r.name}
+    </div>`
+  ).join('');
+}
+
+function selectTicketResto(id, name) {
+  window._ticketRestoId = id;
+  window._ticketRestoName = name;
+  document.getElementById('tk-search').value = '';
+  document.getElementById('tk-resto-list').innerHTML = '';
+  const sel = document.getElementById('tk-resto-selected');
+  document.getElementById('tk-resto-selected-name').textContent = '🍽️ ' + name;
+  sel.style.display = 'block';
+}
+
+function clearTicketResto() {
+  window._ticketRestoId = null;
+  window._ticketRestoName = null;
+  document.getElementById('tk-resto-selected').style.display = 'none';
+  filterTicketRestos('');
 }
 
 function saveTicket() {
   const total = parseFloat(document.getElementById('tk-total').value);
   if (isNaN(total) || total <= 0) { showToast('Introduce un total válido', true); return; }
-  const restoId = document.getElementById('tk-resto').value;
-  const restoName = restoId
-    ? restaurants.find(r => r.id == restoId)?.name
-    : document.getElementById('tk-name').value.trim();
-
   const itemsRaw = document.getElementById('tk-items').value.trim();
   const items = itemsRaw ? itemsRaw.split('\n').map(l => {
     const parts = l.split('·');
     return { name: parts[0]?.trim() || l, price: parseFloat(parts[1]) || null };
   }) : [];
-
-  const ticket = {
+  tickets.unshift({
     id: Date.now(),
     date: document.getElementById('tk-date').value,
-    restaurantId: restoId ? parseInt(restoId) : null,
-    restaurantName: restoName || 'Sin nombre',
+    restaurantId: window._ticketRestoId || null,
+    restaurantName: window._ticketRestoName || 'Sin nombre',
     total, items,
     notes: document.getElementById('tk-notes').value.trim(),
     savedAt: new Date().toISOString()
-  };
-
-  tickets.unshift(ticket);
+  });
   saveData(); closeModal(); render();
   showToast(`Ticket ${total.toFixed(2)}€ guardado ✓`);
 }
 
 function renderTicketCard(t) {
   const itemsHtml = t.items?.length ? t.items.map(i =>
-    `<div class="scan-line"><span>${i.name}</span><span>${i.price ? i.price.toFixed(2) + '€' : ''}</span></div>`
+    `<div class="scan-line"><span>${i.name}</span><span>${i.price ? i.price.toFixed(2)+'€' : ''}</span></div>`
   ).join('') : '';
-
   return `<div class="ticket-card">
     <div class="ticket-header">
       <div>
         <div style="font-size:13px;font-weight:600">${t.restaurantName}</div>
         <div style="font-size:11px;color:var(--text-3);margin-top:2px">${formatDate(t.date)}</div>
-        ${t.notes ? `<div style="font-size:11px;color:var(--text-2);font-style:italic;margin-top:2px">${t.notes}</div>` : ''}
+        ${t.notes?`<div style="font-size:11px;color:var(--text-2);font-style:italic;margin-top:2px">${t.notes}</div>`:''}
       </div>
       <div class="ticket-total">${t.total.toFixed(2)}€</div>
     </div>
-    ${itemsHtml ? `<div class="ticket-items">${itemsHtml}</div>` : ''}
+    ${itemsHtml?`<div class="ticket-items">${itemsHtml}</div>`:''}
     <div style="display:flex;justify-content:flex-end;margin-top:8px">
-      <button onclick="deleteTicket(${t.id})" style="background:none;border:none;font-size:12px;color:var(--text-3);cursor:pointer">🗑 Eliminar</button>
+      <button onclick="confirmDeleteTicket(${t.id})" style="background:none;border:none;font-size:12px;color:var(--text-3);cursor:pointer">🗑 Eliminar</button>
     </div>
   </div>`;
 }
 
-function deleteTicket(id) {
-  tickets = tickets.filter(t => t.id !== id);
-  saveData(); render();
-  showToast('Ticket eliminado');
+function confirmDeleteTicket(id) {
+  showConfirm('Eliminar ticket', '¿Eliminar este ticket?', () => {
+    tickets = tickets.filter(t => t.id !== id);
+    saveData(); render();
+    showToast('Ticket eliminado');
+  });
 }
 
-// --- STATS CON ÍNDICE FOODIE ---
+// --- STATS ---
 function renderStatsWithFoodieIndex() {
   const allV = allVisits();
   const totalVisits = allV.length;
   const totalSpent = allV.reduce((a, v) => a + (v.totalSpent || 0), 0);
   const avgSpent = totalVisits ? totalSpent / totalVisits : 0;
-  const avgRating = allV.filter(v => v.rating).length
-    ? allV.filter(v => v.rating).reduce((a, v) => a + v.rating, 0) / allV.filter(v => v.rating).length
-    : 0;
+  const ratedVisits = allV.filter(v => v.rating);
+  const avgRating = ratedVisits.length ? ratedVisits.reduce((a,v) => a+v.rating, 0) / ratedVisits.length : 0;
 
-  const visitedRestos = restaurants.filter(r => !r.pendingVisit);
-  const foodieRank = visitedRestos.map(r => ({ ...r, score: calculateFoodieScore(r) })).sort((a, b) => b.score - a.score).slice(0, 10);
-  
-  const foodieHtml = `<div class="chart-card">
-    <div class="chart-title">🏆 Índice Foodie (Top 10)</div>
-    ${foodieRank.map((r, i) => {
-      const medalClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-      return `<div class="rank-item">
-        <div class="rank-num ${medalClass}">${i+1}</div>
-        <div class="rank-info">
-          <div class="rank-name">${r.name}</div>
-          <div class="rank-sub">${r.cuisine} · ${r.neighborhood || r.city}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="rank-score">${r.score}/100</div>
-          <div class="foodie-index-bar"><div class="foodie-index-fill" style="width:${r.score}%"></div></div>
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
+  // Gasto por persona
+  const spentValle = allV.filter(v => v.who === 'Valle' || v.who === 'Ambos').reduce((a,v) => a + (v.totalSpent||0)/((v.who==='Ambos')?2:1), 0);
+  const spentJandro = allV.filter(v => v.who === 'Jandro' || v.who === 'Ambos').reduce((a,v) => a + (v.totalSpent||0)/((v.who==='Ambos')?2:1), 0);
+
+  // Racha de semanas
+  const weeks = new Set(allV.map(v => { const d = new Date(v.date+'T12:00:00'); const w = Math.floor(d.getTime()/(7*86400000)); return w; }));
+  let streak = 0;
+  const now = new Date(); const nowWeek = Math.floor(now.getTime()/(7*86400000));
+  for (let w = nowWeek; weeks.has(w); w--) streak++;
+
+  // Restaurante del mes
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const thisMonthVisits = allV.filter(v => v.date.startsWith(thisMonth));
+  const monthRestoCounts = {};
+  thisMonthVisits.forEach(v => { monthRestoCounts[v.restaurantId] = (monthRestoCounts[v.restaurantId]||0)+1; });
+  const topRestoId = Object.entries(monthRestoCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const topResto = topRestoId ? restaurants.find(r => r.id == topRestoId) : null;
+
+  const foodieRank = restaurants.filter(r => !r.pendingVisit)
+    .map(r => ({...r, score: calculateFoodieScore(r)}))
+    .sort((a,b) => b.score - a.score).slice(0,10);
 
   return `
     <div class="stats-row">
@@ -2537,27 +1826,52 @@ function renderStatsWithFoodieIndex() {
       <div class="stat-box"><div class="stat-val">${avgRating ? avgRating.toFixed(1) : '—'}</div><div class="stat-lbl">Nota media</div></div>
     </div>
     <div class="stats-row">
-      <div class="stat-box"><div class="stat-val">${totalSpent ? totalSpent.toFixed(0) + '€' : '—'}</div><div class="stat-lbl">Total gastado</div></div>
-      <div class="stat-box"><div class="stat-val">${avgSpent ? avgSpent.toFixed(0) + '€' : '—'}</div><div class="stat-lbl">Media/visita</div></div>
-      <div class="stat-box"><div class="stat-val">${restaurants.filter(r=>r.pendingVisit).length}</div><div class="stat-lbl">Pendientes</div></div>
+      <div class="stat-box"><div class="stat-val">${totalSpent ? totalSpent.toFixed(0)+'€' : '—'}</div><div class="stat-lbl">Total gastado</div></div>
+      <div class="stat-box"><div class="stat-val">${avgSpent ? avgSpent.toFixed(0)+'€' : '—'}</div><div class="stat-lbl">Media/visita</div></div>
+      <div class="stat-box"><div class="stat-val">${streak}</div><div class="stat-lbl">Racha (sem.)</div></div>
     </div>
 
-    ${foodieHtml}
+    ${topResto ? `<div class="card card-padded" style="margin-bottom:12px;background:var(--accent-soft);border-color:var(--accent)">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">⭐ Restaurante del mes</div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700">${topResto.name}</div>
+      <div style="font-size:11px;color:var(--text-2);margin-top:2px">${thisMonthVisits.filter(v=>v.restaurantId==topRestoId).length} visitas este mes</div>
+    </div>` : ''}
+
+    <div class="card card-padded" style="margin-bottom:12px">
+      <div class="chart-title">💶 Gasto por persona</div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;text-align:center;padding:12px;background:var(--bg-subtle);border-radius:10px">
+          <div style="font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:4px">Valle</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--accent)">${spentValle ? spentValle.toFixed(0)+'€' : '—'}</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:12px;background:var(--bg-subtle);border-radius:10px">
+          <div style="font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:4px">Jandro</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--accent)">${spentJandro ? spentJandro.toFixed(0)+'€' : '—'}</div>
+        </div>
+      </div>
+    </div>
 
     <div class="chart-card">
-      <div class="chart-title">🍽️ Visitas por tipo de cocina</div>
-      <canvas id="cuisineChart" height="180"></canvas>
+      <div class="chart-title">🏆 Índice Foodie (Top 10)</div>
+      ${foodieRank.map((r,i) => {
+        const mc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+        return `<div class="rank-item">
+          <div class="rank-num ${mc}">${i+1}</div>
+          <div class="rank-info">
+            <div class="rank-name">${r.name}</div>
+            <div class="rank-sub">${r.cuisine} · ${r.neighborhood||r.city}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="rank-score">${r.score}/100</div>
+            <div class="foodie-index-bar"><div class="foodie-index-fill" style="width:${r.score}%"></div></div>
+          </div>
+        </div>`;
+      }).join('')}
     </div>
 
-    <div class="chart-card">
-      <div class="chart-title">📅 Visitas por mes</div>
-      <canvas id="monthChart" height="180"></canvas>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-title">💶 Gasto por mes</div>
-      <canvas id="spendChart" height="180"></canvas>
-    </div>
+    <div class="chart-card"><div class="chart-title">🍽️ Visitas por cocina</div><canvas id="cuisineChart" height="180"></canvas></div>
+    <div class="chart-card"><div class="chart-title">📅 Visitas por mes</div><canvas id="monthChart" height="180"></canvas></div>
+    <div class="chart-card"><div class="chart-title">💶 Gasto por mes</div><canvas id="spendChart" height="180"></canvas></div>
   `;
 }
 
@@ -2566,7 +1880,6 @@ function initStatsCharts() {
   const isDark = document.body.classList.contains('dark');
   const textColor = isDark ? '#9A9A9A' : '#6B6B6B';
   const gridColor = isDark ? '#2A2A2A' : '#EBEBEB';
-
   const baseOpts = {
     responsive: true, maintainAspectRatio: true,
     plugins: { legend: { display: false } },
@@ -2577,88 +1890,100 @@ function initStatsCharts() {
   };
 
   const cuisineMap = {};
-  allV.forEach(v => { cuisineMap[v.cuisine || 'Otro'] = (cuisineMap[v.cuisine || 'Otro'] || 0) + 1; });
-  const cEntries = Object.entries(cuisineMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  allV.forEach(v => { cuisineMap[v.cuisine||'Otro'] = (cuisineMap[v.cuisine||'Otro']||0)+1; });
+  const cEntries = Object.entries(cuisineMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
   destroyChart('cuisineChart');
   const cCtx = document.getElementById('cuisineChart')?.getContext('2d');
-  if (cCtx) {
-    chartInstances['cuisineChart'] = new Chart(cCtx, {
-      type: 'bar',
-      data: { labels: cEntries.map(([k]) => k), datasets: [{ data: cEntries.map(([, v]) => v), backgroundColor: ROULETTE_COLORS }] },
-      options: { ...baseOpts, plugins: { legend: { display: false } } }
-    });
-  }
+  if (cCtx) chartInstances['cuisineChart'] = new Chart(cCtx, { type:'bar', data:{ labels:cEntries.map(([k])=>k), datasets:[{ data:cEntries.map(([,v])=>v), backgroundColor:ROULETTE_COLORS }] }, options:baseOpts });
 
   const monthMap = {};
-  allV.forEach(v => { const key = v.date.slice(0, 7); monthMap[key] = (monthMap[key] || 0) + 1; });
+  allV.forEach(v => { const k=v.date.slice(0,7); monthMap[k]=(monthMap[k]||0)+1; });
   const mEntries = Object.entries(monthMap).sort().slice(-12);
   destroyChart('monthChart');
   const mCtx = document.getElementById('monthChart')?.getContext('2d');
-  if (mCtx) {
-    chartInstances['monthChart'] = new Chart(mCtx, {
-      type: 'line',
-      data: { labels: mEntries.map(([k]) => k.slice(5)), datasets: [{ data: mEntries.map(([, v]) => v), borderColor: '#E8613C', tension: 0.3, fill: true, backgroundColor: 'rgba(232,97,60,0.1)' }] },
-      options: baseOpts
-    });
-  }
+  if (mCtx) chartInstances['monthChart'] = new Chart(mCtx, { type:'line', data:{ labels:mEntries.map(([k])=>k.slice(5)), datasets:[{ data:mEntries.map(([,v])=>v), borderColor:'#E8613C', tension:0.3, fill:true, backgroundColor:'rgba(232,97,60,0.1)' }] }, options:baseOpts });
 
   const spendMap = {};
-  allV.forEach(v => { if (v.totalSpent) { const key = v.date.slice(0, 7); spendMap[key] = (spendMap[key] || 0) + v.totalSpent; } });
+  allV.forEach(v => { if(v.totalSpent){ const k=v.date.slice(0,7); spendMap[k]=(spendMap[k]||0)+v.totalSpent; } });
   const sEntries = Object.entries(spendMap).sort().slice(-12);
   destroyChart('spendChart');
   const sCtx = document.getElementById('spendChart')?.getContext('2d');
-  if (sCtx) {
-    chartInstances['spendChart'] = new Chart(sCtx, {
-      type: 'bar',
-      data: { labels: sEntries.map(([k]) => k.slice(5)), datasets: [{ data: sEntries.map(([, v]) => Math.round(v)), backgroundColor: '#2D6A4F' }] },
-      options: baseOpts
-    });
-  }
+  if (sCtx) chartInstances['spendChart'] = new Chart(sCtx, { type:'bar', data:{ labels:sEntries.map(([k])=>k.slice(5)), datasets:[{ data:sEntries.map(([,v])=>Math.round(v)), backgroundColor:'#2D6A4F' }] }, options:baseOpts });
 }
 
 function destroyChart(name) {
   if (chartInstances[name]) { try { chartInstances[name].destroy(); } catch(e) {} delete chartInstances[name]; }
 }
 
-// --- MAPA INTERACTIVO ---
+// --- MAP ---
 function renderMap() {
-  const mapHtml = `<div class="card card-padded" style="margin-bottom:12px">
+  return `<div class="card card-padded" style="margin-bottom:12px">
     <div class="section-label">🗺️ Mapa de restaurantes</div>
+    <div style="font-size:11px;color:var(--text-2);margin-bottom:8px">Los marcadores son aproximados por barrio. Toca uno para ver el detalle.</div>
     <div id="foodie-map" class="map-container"></div>
-    <div class="empty-sub" style="text-align:center; margin-top:8px">🔵 No visitados · 🟢 Visitados</div>
+    <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--text-2)">
+      <span>🟢 Visitados</span><span>🔵 Pendientes</span>
+    </div>
   </div>`;
-  
-  setTimeout(() => {
-    if (document.getElementById('foodie-map') && !mapInitialized) {
-      const map = L.map('foodie-map').setView([41.6488, -0.8891], 13);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { 
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors' 
-      }).addTo(map);
-      
-      restaurants.slice(0, 100).forEach(r => {
-        const lat = 41.6488 + (Math.random() - 0.5) * 0.1;
-        const lng = -0.8891 + (Math.random() - 0.5) * 0.1;
-        const markerColor = r.visits && r.visits.length > 0 ? 'green' : 'blue';
-        const marker = L.circleMarker([lat, lng], { radius: 8, fillColor: markerColor, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8 }).addTo(map);
-        marker.bindPopup(`<b>${r.name}</b><br>${r.cuisine}<br>${r.neighborhood || r.city}<br>${r.visits?.length || 0} visitas`);
-      });
-      mapInitialized = true;
-    }
-  }, 100);
-  
-  return mapHtml;
+}
+
+// Coordenadas aproximadas por barrio de Zaragoza
+const NEIGHBORHOOD_COORDS = {
+  'Casco Antiguo': [41.6561, -0.8773], 'El Tubo': [41.6555, -0.8790], 'Centro': [41.6523, -0.8867],
+  'Paseo Independencia': [41.6490, -0.8858], 'Romareda': [41.6398, -0.9040], 'Universidad': [41.6476, -0.8934],
+  'Delicias': [41.6530, -0.9120], 'San José': [41.6620, -0.8750], 'Las Fuentes': [41.6640, -0.8620],
+  'Torrero': [41.6310, -0.8830], 'La Paz': [41.6720, -0.8870], 'Actur': [41.6800, -0.8920],
+  'Rey Fernando': [41.6750, -0.8980], 'Miralbueno': [41.6480, -0.9300], 'Valdespartera': [41.6090, -0.8900],
+  'Montecanal': [41.6180, -0.9050], 'Parque Goya': [41.6850, -0.8700], 'Santa Isabel': [41.6990, -0.8560],
+  'Oliver': [41.6560, -0.9260], 'Valdefierro': [41.6400, -0.9200], 'Almozara': [41.6590, -0.9030],
+  'Expo': [41.6650, -0.9100], 'Casablanca': [41.6310, -0.8730], 'Arrabal': [41.6660, -0.8790],
+  'San Pablo': [41.6590, -0.8810], 'La Almozara': [41.6600, -0.9050]
+};
+
+function initMap() {
+  const mapEl = document.getElementById('foodie-map');
+  if (!mapEl) return;
+  if (mapInstance) { mapInstance.invalidateSize(); return; }
+
+  mapInstance = L.map('foodie-map').setView([41.6488, -0.8891], 13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OSM contributors'
+  }).addTo(mapInstance);
+
+  restaurants.forEach(r => {
+    const baseCoords = NEIGHBORHOOD_COORDS[r.neighborhood] || [41.6488, -0.8891];
+    // Pequeño offset aleatorio dentro del barrio para no apilar todos en el mismo punto
+    const jitter = 0.004;
+    const lat = baseCoords[0] + (Math.random() - 0.5) * jitter;
+    const lng = baseCoords[1] + (Math.random() - 0.5) * jitter;
+    const isVisited = (r.visits||[]).length > 0;
+    const color = r.pendingVisit ? '#3D7CC9' : (isVisited ? '#2D9E4E' : '#E8613C');
+    const marker = L.circleMarker([lat, lng], {
+      radius: 7, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
+    }).addTo(mapInstance);
+    const avgRating = getRestaurantAvgRating(r);
+    marker.bindPopup(`<b style="font-family:serif">${r.name}</b><br>
+      ${r.cuisine||''} · ${r.neighborhood||r.city||''}<br>
+      ${priceLabelHtml(r.priceLevel)}${avgRating ? ' · ' + avgRating + '★' : ''}
+      ${r.hours ? '<br>🕒 ' + r.hours : ''}
+    `);
+    marker.on('click', () => { setTimeout(() => openRestaurantDetail(r.id), 300); });
+  });
 }
 
 // --- SETTINGS ---
 function renderSettings() {
   const theme = document.body.className || 'light';
+  const storageKB = getStorageUsageKB();
+  const storagePct = Math.min(Math.round(storageKB / 51200 * 100), 100); // 50MB max approx
+
   return `
     <div class="section-label">Apariencia</div>
     <div class="theme-row">
-      <div class="theme-btn ${theme === 'light' ? 'active' : ''}" onclick="setTheme('light')">☀️ Claro</div>
-      <div class="theme-btn ${theme === 'dark' ? 'active' : ''}" onclick="setTheme('dark')">🌙 Oscuro</div>
-      <div class="theme-btn ${theme === 'sage' ? 'active' : ''}" onclick="setTheme('sage')">🌿 Salvia</div>
-      <div class="theme-btn ${theme === 'slate' ? 'active' : ''}" onclick="setTheme('slate')">💙 Slate</div>
+      <div class="theme-btn ${theme==='light'?'active':''}" onclick="setTheme('light')">☀️ Claro</div>
+      <div class="theme-btn ${theme==='dark'?'active':''}" onclick="setTheme('dark')">🌙 Oscuro</div>
+      <div class="theme-btn ${theme==='sage'?'active':''}" onclick="setTheme('sage')">🌿 Salvia</div>
+      <div class="theme-btn ${theme==='slate'?'active':''}" onclick="setTheme('slate')">💙 Slate</div>
     </div>
 
     <div class="divider"></div>
@@ -2668,11 +1993,27 @@ function renderSettings() {
     <button class="btn-secondary" onclick="loadRestaurantsFromJSON()" style="margin-bottom:8px">📚 Cargar restaurantes desde JSON</button>
 
     <div class="divider"></div>
+    <div class="section-label">Almacenamiento</div>
+    <div class="card card-padded" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-bottom:6px">
+        <span>Espacio usado</span>
+        <span style="font-weight:600;color:var(--text)">${storageKB} KB</span>
+      </div>
+      <div class="storage-bar-wrap">
+        <div class="storage-bar-fill" style="width:${storagePct}%;background:${storagePct>80?'#DC2626':'var(--accent)'}"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text-3);margin-top:4px">${storageKB} KB de ~5.000 KB disponibles</div>
+    </div>
+
+    <div class="divider"></div>
     <div class="section-label">Información</div>
     <div class="card card-padded" style="font-size:12px;color:var(--text-2);line-height:1.7">
       <div><strong>foodie</strong> — tu diario gastronómico personal</div>
       <div style="margin-top:6px">Todos los datos se guardan localmente en tu dispositivo.</div>
       <div style="margin-top:4px">Usuarios: Valle & Jandro</div>
+      <div style="margin-top:4px;color:var(--text-3)">
+        ${restaurants.filter(r=>!r.pendingVisit).length} restaurantes · ${restaurants.filter(r=>r.pendingVisit).length} pendientes · ${allVisits().length} visitas · ${recipes.length} recetas · ${tickets.length} tickets
+      </div>
     </div>
   `;
 }
@@ -2683,11 +2024,10 @@ function setTheme(t) {
   render();
   if (moreTab === 'stats') setTimeout(initStatsCharts, 50);
   if (currentView === 'roulette') setTimeout(drawRoulette, 50);
-  if (moreTab === 'map') setTimeout(renderMap, 100);
 }
 
 // ================================================================
-// SAMPLE DATA (SOLO DATOS DE EJEMPLO, SIN LOS 250)
+// SAMPLE DATA
 // ================================================================
 function loadSampleData() {
   if (restaurants.length > 0) return;
@@ -2695,6 +2035,7 @@ function loadSampleData() {
     {
       id: 1001, name: "La Miga", city: "Zaragoza", country: "España", neighborhood: "Casco Antiguo",
       cuisine: "Española", priceLevel: 2, notes: "Bocadillos increíbles, ambiente de barrio",
+      hours: "L-S 08:00-22:00", phone: "976 111 222", web: "", terrace: false,
       pendingVisit: false,
       favDishes: [
         { dish: "Bocata de calamares", user: "Jandro", note: "El mejor de Zaragoza" },
@@ -2708,6 +2049,7 @@ function loadSampleData() {
     {
       id: 1002, name: "Sushi Yuki", city: "Zaragoza", country: "España", neighborhood: "Centro",
       cuisine: "Japonesa", priceLevel: 3, notes: "Buen omakase, reservar con antelación",
+      hours: "Ma-D 13:00-15:30, 20:00-23:00", phone: "", web: "", terrace: false,
       pendingVisit: false,
       favDishes: [
         { dish: "Nigiri de atún", user: "Valle", note: "Pedir doble siempre" },
@@ -2720,39 +2062,35 @@ function loadSampleData() {
     },
     {
       id: 1003, name: "Pizzería Napoli", city: "Zaragoza", country: "España", neighborhood: "Romareda",
-      cuisine: "Italiana", priceLevel: 2, notes: "Masa napolitana auténtica",
+      cuisine: "Italiana", priceLevel: 2, notes: "Masa napolitana auténtica", terrace: true,
       pendingVisit: false,
       favDishes: [{ dish: "Margherita bufalá", user: "Ambos", note: "La clásica, insuperable" }],
       visits: [{ id: 5, date: "2026-03-08", rating: 4, who: "Jandro", totalSpent: 22, notes: "Rápido y buenísimo" }]
     },
     {
       id: 1004, name: "El Fuelle", city: "Zaragoza", country: "España", neighborhood: "Casco Antiguo",
-      cuisine: "Española", priceLevel: 2, notes: "Tapas del Casco Antiguo, siempre lleno",
+      cuisine: "Española", priceLevel: 2, notes: "Tapas del Casco Antiguo, siempre lleno", terrace: true,
       pendingVisit: false,
+      favDishes: [],
       visits: [{ id: 6, date: "2026-04-01", rating: 3, who: "Ambos", totalSpent: 35, notes: "Servicio lento pero las tapas muy bien" }]
     },
     {
       id: 1005, name: "Noi Thai", city: "Zaragoza", country: "España", neighborhood: "Centro",
-      cuisine: "Tailandesa", priceLevel: 2, notes: "Menú del día excelente",
+      cuisine: "Tailandesa", priceLevel: 2, notes: "Menú del día excelente", terrace: false,
       pendingVisit: true, favDishes: [], visits: []
     }
   ];
-
   recipes = [{
-    id: 2001, name: "Pasta al limón de Valle", cuisine: "Italiana", time: 20,
-    difficulty: "Fácil", servings: 2,
+    id: 2001, name: "Pasta al limón de Valle", cuisine: "Italiana", time: 20, difficulty: "Fácil", servings: 2,
     ingredients: "- 200g espaguetis\n- 1 limón (zumo y ralladura)\n- 100ml nata\n- 2 dientes de ajo\n- Parmesano rallado\n- Sal, pimienta, aceite de oliva",
     steps: "1. Cocer la pasta al dente.\n2. Sofreír el ajo en aceite.\n3. Añadir nata, zumo y ralladura de limón.\n4. Mezclar con la pasta.\n5. Servir con parmesano.",
     notes: "Añadir un poco de agua de cocción para ligar la salsa", createdAt: "2026-01-10"
   }];
-
   tickets = [{
-    id: 3001, date: "2026-02-14", restaurantId: 1002,
-    restaurantName: "Sushi Yuki", total: 82,
+    id: 3001, date: "2026-02-14", restaurantId: 1002, restaurantName: "Sushi Yuki", total: 82,
     items: [{ name: "Omakase x2", price: 60 }, { name: "Cerveza Asahi x2", price: 9 }, { name: "Mochi helado", price: 8 }, { name: "Propina", price: 5 }],
     notes: "San Valentín", savedAt: "2026-02-14"
   }];
-
   saveData();
 }
 
