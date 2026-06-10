@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
 /* ===== RESET & BASE ===== */
@@ -1002,6 +1004,18 @@ canvas { max-width: 100%; height: 180px !important; }
 /* import hidden */
 .import-input { display: none; }
 
+/* ===== NUEVOS ESTILOS ===== */
+.search-bar { margin-bottom: 12px; }
+.foodie-index-bar { background: var(--accent-soft); border-radius: 10px; height: 6px; width: 100%; margin-top: 6px; }
+.foodie-index-fill { background: var(--accent); height: 6px; border-radius: 10px; width: 0%; }
+.ranking-btn { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; margin-left: auto; color: var(--text-2); }
+.what-i-want { background: var(--bg-subtle); border-radius: var(--radius); padding: 12px; margin-bottom: 16px; }
+.wiq-question { margin-bottom: 12px; }
+.wiq-question label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text); }
+.wiq-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.wiq-opt { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--text-2); }
+.wiq-opt.active { background: var(--accent); color: white; border-color: var(--accent); }
+.map-container { height: 400px; width: 100%; border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; z-index: 1; }
 </style>
 </head>
 <body>
@@ -1018,7 +1032,7 @@ canvas { max-width: 100%; height: 180px !important; }
     <button class="active" onclick="showView('restaurants')" id="nav-restaurants"><span class="nav-icon">🍽️</span><span class="nav-label">Lista</span></button>
     <button onclick="showView('diary')" id="nav-diary"><span class="nav-icon">📖</span><span class="nav-label">Diario</span></button>
     <button onclick="showView('discover')" id="nav-discover"><span class="nav-icon">🔍</span><span class="nav-label">Descubrir</span></button>
-    <button onclick="showView('roulette')" id="nav-roulette"><span class="nav-icon">🎡</span><span class="nav-label">Ruleta</span></button>
+    <button onclick="showView('roulette')" id="nav-roulette"><span class="nav-icon">🎰</span><span class="nav-label">Ruleta</span></button>
     <button onclick="showView('favorites')" id="nav-favorites"><span class="nav-icon">♥</span><span class="nav-label">Favoritos</span></button>
     <button onclick="showView('more')" id="nav-more"><span class="nav-icon">···</span><span class="nav-label">Más</span></button>
   </nav>
@@ -1067,6 +1081,10 @@ let rouletteFilters = { cuisine: 'all', price: 'all', city: 'all' };
 let rouletteAngle = 0;
 let rouletteSpinning = false;
 let rouletteResult = null;
+
+// NUEVOS: Search y "Qué me apetece"
+let searchTerm = '';
+let wiqFilters = { type: null, speed: null, budget: null, terrace: null, cuisine: null };
 
 // ================================================================
 // STORAGE
@@ -1199,6 +1217,72 @@ function getUniqueCities() {
 }
 
 // ================================================================
+// NUEVO: ÍNDICE FOODIE
+// ================================================================
+function calculateFoodieScore(restaurant) {
+  // 40% valoración, 20% frecuencia, 15% calidad-precio, 15% platos favoritos, 10% recencia
+  let score = 0;
+  
+  // Valoración (0-5)
+  const avgRating = getRestaurantAvgRating(restaurant) || 0;
+  score += (avgRating / 5) * 40;
+  
+  // Frecuencia (máximo 20 puntos por 20+ visitas)
+  const visitCount = (restaurant.visits || []).length;
+  score += Math.min(visitCount, 20) * 1;
+  
+  // Calidad-Precio (inversamente proporcional al precio, máximo 15)
+  // Precio 1 = 15, precio 5 = 3
+  const priceScore = 15 - (restaurant.priceLevel - 1) * 3;
+  score += Math.max(priceScore, 0);
+  
+  // Platos favoritos (máximo 15)
+  const favCount = (restaurant.favDishes || []).length;
+  score += Math.min(favCount, 15);
+  
+  // Recencia (máximo 10 puntos)
+  const visits = (restaurant.visits || []).sort((a, b) => b.date.localeCompare(a.date));
+  if (visits.length > 0) {
+    const lastVisitDate = new Date(visits[0].date + 'T12:00:00');
+    const now = new Date();
+    const daysSince = Math.floor((now - lastVisitDate) / (1000 * 60 * 60 * 24));
+    if (daysSince <= 30) score += 10;
+    else if (daysSince <= 90) score += 5;
+  }
+  
+  return Math.min(Math.round(score), 100);
+}
+
+// ================================================================
+// CARGA MASIVA DE RESTAURANTES (MUESTRA REPRESENTATIVA)
+// ================================================================
+function loadMassiveRestaurants() {
+  if (restaurants.length > 50) return;
+  
+  const massiveList = [
+    { id: 10001, name: "La Rinconada de Lorenzo", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 2, notes: "Cocina aragonesa tradicional", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10002, name: "Los Xarmientos", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 2, notes: "Parrilla aragonesa", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10003, name: "Restaurante El Fuelle", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 2, notes: "Caracoles, solomillo", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10004, name: "Ramen Shifu", city: "Zaragoza", country: "Japón", cuisine: "Japonesa", priceLevel: 1, notes: "Uno de los mejores ramen", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10005, name: "Bokoto Zaragoza", city: "Zaragoza", country: "Japón", cuisine: "Japonesa", priceLevel: 3, notes: "Sushi elegante", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10006, name: "Amrit Restaurante Indio", city: "Zaragoza", country: "India", cuisine: "India", priceLevel: 2, notes: "El mejor indio (4.9)", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10007, name: "Distrito México", city: "Zaragoza", country: "México", cuisine: "Mexicana", priceLevel: 1, notes: "Cantina mexicana", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10008, name: "La Gran Causa", city: "Zaragoza", country: "Perú", cuisine: "Peruana", priceLevel: 1, notes: "El mejor peruano", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10009, name: "Syriana", city: "Zaragoza", country: "Siria", cuisine: "Árabe", priceLevel: 1, notes: "Shawarma, falafel", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10010, name: "Caníbal Royal", city: "Zaragoza", country: "España", cuisine: "Americana", priceLevel: 2, notes: "Hamburguesas artesanales", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10011, name: "El Calamar Bravo", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 1, notes: "Bocadillo de calamar mítico", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10012, name: "Voltereta Nueva Zelanda", city: "Zaragoza", country: "España", cuisine: "Internacional", priceLevel: 2, notes: "Experiencia inmersiva", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10013, name: "La Senda", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 3, notes: "Menú degustación", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10014, name: "Casa Lac", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 3, notes: "El más antiguo (1825)", pendingVisit: false, visits: [], favDishes: [] },
+    { id: 10015, name: "Helados Tortosa", city: "Zaragoza", country: "España", cuisine: "Italiana", priceLevel: 1, notes: "Helados artesanales", pendingVisit: false, visits: [], favDishes: [] }
+  ];
+  
+  restaurants = [...massiveList, ...restaurants];
+  saveData();
+  showToast(`📚 ${massiveList.length} restaurantes cargados`);
+}
+
+// ================================================================
 // NAVIGATION
 // ================================================================
 function showView(v) {
@@ -1239,33 +1323,41 @@ function render() {
 }
 
 // ================================================================
-// VIEW: RESTAURANTS
+// VIEW: RESTAURANTS (CON BÚSQUEDA)
 // ================================================================
 function renderRestaurants() {
   const visited = restaurants.filter(r => !r.pendingVisit);
   const cuisines = getUniqueCuisines();
 
-  const filterHtml = `<div class="filter-bar">
-    <div class="filter-pill ${filterCuisine === 'all' ? 'active' : ''}" onclick="setFilterCuisine('all')">Todos</div>
-    ${cuisines.map(c => `<div class="filter-pill ${filterCuisine === c ? 'active' : ''}" onclick="setFilterCuisine('${c}')">${c}</div>`).join('')}
-  </div>`;
-
-  const filtered = filterCuisine === 'all' ? visited : visited.filter(r => r.cuisine === filterCuisine);
+  let filtered = filterCuisine === 'all' ? visited : visited.filter(r => r.cuisine === filterCuisine);
+  if (searchTerm) {
+    filtered = filtered.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }
   filtered.sort((a, b) => {
     const ra = getRestaurantAvgRating(a) || 0;
     const rb = getRestaurantAvgRating(b) || 0;
     return rb - ra;
   });
 
-  if (!visited.length) {
-    return `<div class="empty-state">
-      <div class="empty-icon">🍽️</div>
-      <div class="empty-title">Sin restaurantes aún</div>
-      <div class="empty-sub">Añade tu primer restaurante con el botón de arriba</div>
-    </div>`;
-  }
+  const filterHtml = `
+    <div class="filter-bar">
+      <div class="filter-pill ${filterCuisine === 'all' ? 'active' : ''}" onclick="setFilterCuisine('all')">Todos</div>
+      ${cuisines.map(c => `<div class="filter-pill ${filterCuisine === c ? 'active' : ''}" onclick="setFilterCuisine('${c}')">${c}</div>`).join('')}
+    </div>
+    <div class="search-bar">
+      <input type="text" class="form-input" placeholder="🔍 Buscar restaurante..." id="restaurant-search" value="${searchTerm}" oninput="updateSearch(this.value)">
+    </div>
+  `;
 
+  if (!visited.length) {
+    return `<div class="empty-state"><div class="empty-icon">🍽️</div><div class="empty-title">Sin restaurantes aún</div><div class="empty-sub">Añade tu primer restaurante con el botón de arriba</div></div>`;
+  }
   return filterHtml + filtered.map(renderRestoCard).join('') || '<div class="empty-state"><div class="empty-sub">Ningún restaurante con este filtro</div></div>';
+}
+
+function updateSearch(term) {
+  searchTerm = term;
+  render();
 }
 
 function setFilterCuisine(c) { filterCuisine = c; render(); }
@@ -1296,7 +1388,7 @@ function renderRestoCard(r) {
 }
 
 // ================================================================
-// RESTAURANT DETAIL MODAL
+// RESTAURANT DETAIL MODAL (FUNCIONES COMPLETAS)
 // ================================================================
 function openRestaurantDetail(id) {
   const r = restaurants.find(x => x.id === id);
@@ -1634,7 +1726,6 @@ function renderDiary() {
     </div>`;
   }
 
-  // Group by month
   const byMonth = {};
   visits.forEach(v => {
     const key = v.date.slice(0, 7);
@@ -1674,7 +1765,6 @@ function renderDiary() {
 }
 
 function openDiaryModal(id) {
-  // For diary, pick a restaurant first
   if (!restaurants.filter(r => !r.pendingVisit).length) {
     showToast('Añade un restaurante primero', true);
     return;
@@ -1698,13 +1788,12 @@ function openDiaryModal(id) {
 }
 
 // ================================================================
-// VIEW: DISCOVER
+// VIEW: DISCOVER (CON HORARIO)
 // ================================================================
 function renderDiscover() {
   const pending = restaurants.filter(r => r.pendingVisit);
   const visited = restaurants.filter(r => !r.pendingVisit);
 
-  // Suggested: not visited in 60+ days
   const today = new Date();
   const suggestions = visited.filter(r => {
     const visits = r.visits || [];
@@ -1715,7 +1804,6 @@ function renderDiscover() {
 
   let html = '';
 
-  // Pending to visit
   if (pending.length) {
     html += `<div class="section-label">Para ir pronto (${pending.length})</div>`;
     html += pending.map(r => `
@@ -1723,14 +1811,13 @@ function renderDiscover() {
         <div class="resto-stripe ${stripeClass(r.cuisine)}" style="width:4px;border-radius:2px;flex-shrink:0;min-height:40px"></div>
         <div style="flex:1;padding-left:8px">
           <div class="pending-name">${r.name}</div>
-          <div class="pending-meta">${r.city || ''} · ${r.cuisine || ''} · ${priceLabelHtml(r.priceLevel)}</div>
+          <div class="pending-meta">${r.city || ''} · ${r.cuisine || ''} · ${priceLabelHtml(r.priceLevel)}${r.hours ? ` · 🕒 ${r.hours}` : ''}</div>
         </div>
         <button onclick="event.stopPropagation();markAsVisited(${r.id})" style="background:var(--accent-soft);border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;color:var(--accent);cursor:pointer">Ya fui ✓</button>
       </div>`).join('');
     html += '<div class="divider"></div>';
   }
 
-  // Suggestions
   if (suggestions.length) {
     html += `<div class="section-label">Hace tiempo que no vas...</div>`;
     html += suggestions.map(r => {
@@ -1783,6 +1870,10 @@ function openPendingModal(id) {
         </div>
       </div>
       <div class="form-row">
+        <label class="form-label">Horario</label>
+        <input id="p-hours" class="form-input" placeholder="Ej: L-V 13:00-16:00, 20:00-23:00">
+      </div>
+      <div class="form-row">
         <label class="form-label">Notas</label>
         <textarea id="p-notes" class="form-input" placeholder="Por qué quieres ir, quién lo recomendó..."></textarea>
       </div>
@@ -1807,6 +1898,7 @@ function savePending() {
     country: document.getElementById('p-country').value.trim(),
     cuisine: document.getElementById('p-cuisine').value,
     priceLevel: window._pendingPrice || 2,
+    hours: document.getElementById('p-hours').value.trim(),
     notes: document.getElementById('p-notes').value.trim(),
     pendingVisit: true,
     favDishes: [], visits: []
@@ -1831,7 +1923,7 @@ function openPendingDetail(id) {
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-title">${r.name}<button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div style="font-size:12px;color:var(--text-2);margin-bottom:16px">${r.city} · ${r.cuisine} · ${priceLabelHtml(r.priceLevel)}</div>
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:16px">${r.city} · ${r.cuisine} · ${priceLabelHtml(r.priceLevel)}${r.hours ? `<br>🕒 ${r.hours}` : ''}</div>
       ${r.notes ? `<div style="font-size:13px;color:var(--text-2);font-style:italic;margin-bottom:16px;padding:10px;background:var(--bg-subtle);border-radius:10px">${r.notes}</div>` : ''}
       <button class="btn-primary" onclick="closeModal();markAsVisited(${id})">✓ Ya fui — registrar visita</button>
       <button class="btn-secondary" onclick="closeModal();openRestaurantModal(${id})">✏️ Editar</button>
@@ -1842,7 +1934,7 @@ function openPendingDetail(id) {
 }
 
 // ================================================================
-// VIEW: FAVORITES
+// VIEW: FAVORITES (CON BOTÓN RANKING)
 // ================================================================
 function renderFavorites() {
   const allFavs = [];
@@ -1852,11 +1944,14 @@ function renderFavorites() {
     });
   });
 
-  const filterHtml = `<div class="filter-bar">
-    <div class="filter-pill ${filterFavUser === 'all' ? 'active' : ''}" onclick="setFilterFavUser('all')">Todos</div>
-    <div class="filter-pill ${filterFavUser === 'Valle' ? 'active' : ''}" onclick="setFilterFavUser('Valle')">♥ Valle</div>
-    <div class="filter-pill ${filterFavUser === 'Jandro' ? 'active' : ''}" onclick="setFilterFavUser('Jandro')">♥ Jandro</div>
-    <div class="filter-pill ${filterFavUser === 'Ambos' ? 'active' : ''}" onclick="setFilterFavUser('Ambos')">♥ Ambos</div>
+  const filterHtml = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <div class="filter-bar" style="margin-bottom:0; flex:1">
+      <div class="filter-pill ${filterFavUser === 'all' ? 'active' : ''}" onclick="setFilterFavUser('all')">Todos</div>
+      <div class="filter-pill ${filterFavUser === 'Valle' ? 'active' : ''}" onclick="setFilterFavUser('Valle')">♥ Valle</div>
+      <div class="filter-pill ${filterFavUser === 'Jandro' ? 'active' : ''}" onclick="setFilterFavUser('Jandro')">♥ Jandro</div>
+      <div class="filter-pill ${filterFavUser === 'Ambos' ? 'active' : ''}" onclick="setFilterFavUser('Ambos')">♥ Ambos</div>
+    </div>
+    <button class="ranking-btn" onclick="showRankingModal()">🏆 Ranking</button>
   </div>`;
 
   const filtered = filterFavUser === 'all' ? allFavs : allFavs.filter(f => f.user === filterFavUser);
@@ -1894,17 +1989,58 @@ function renderFavorites() {
 
 function setFilterFavUser(u) { filterFavUser = u; render(); }
 
+function showRankingModal() {
+  const visited = restaurants.filter(r => !r.pendingVisit);
+  const scored = visited.map(r => ({ ...r, foodieScore: calculateFoodieScore(r) })).sort((a, b) => b.foodieScore - a.foodieScore).slice(0, 10);
+  
+  const rankHtml = scored.map((r, i) => {
+    const medalClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    return `<div class="rank-item">
+      <div class="rank-num ${medalClass}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${r.name}</div>
+        <div class="rank-sub">${r.cuisine} · ${getRestaurantAvgRating(r) || 'N/A'} ★</div>
+      </div>
+      <div class="rank-score">${r.foodieScore}</div>
+    </div>`;
+  }).join('');
+  
+  const modalHtml = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">🏆 Top 10 Foodie <button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div style="font-size:11px; color:var(--text-2); margin-bottom:12px">Basado en valoración, visitas, calidad-precio, platos favoritos y recencia</div>
+      ${rankHtml}
+    </div>
+  </div>`;
+  document.getElementById('modal-container').innerHTML = modalHtml;
+}
+
 // ================================================================
-// VIEW: ROULETTE
+// VIEW: ROULETTE (CON "¿QUÉ ME APETECE?" Y NUEVO ÍCONO)
 // ================================================================
 function renderRoulette() {
   const candidates = getRouletteRestaurants();
   const cities = getUniqueCities();
   const cuisines = getUniqueCuisines();
 
+  // Sección ¿Qué me apetece?
+  const wiqHtml = `
+    <div class="what-i-want">
+      <div class="section-label" style="margin-bottom:8px">🍕 ¿Qué me apetece?</div>
+      <div class="wiq-question"><label>¿Bar o restaurante?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.type === 'bar' ? 'active' : ''}" onclick="setWiqFilter('type', 'bar')">Bar/Tapas</div><div class="wiq-opt ${wiqFilters.type === 'restaurant' ? 'active' : ''}" onclick="setWiqFilter('type', 'restaurant')">Restaurante</div><div class="wiq-opt ${wiqFilters.type === null ? 'active' : ''}" onclick="setWiqFilter('type', null)">Cualquiera</div></div></div>
+      <div class="wiq-question"><label>¿Rápido o tranquilo?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.speed === 'fast' ? 'active' : ''}" onclick="setWiqFilter('speed', 'fast')">Rápido</div><div class="wiq-opt ${wiqFilters.speed === 'slow' ? 'active' : ''}" onclick="setWiqFilter('speed', 'slow')">Tranquilo</div><div class="wiq-opt ${wiqFilters.speed === null ? 'active' : ''}" onclick="setWiqFilter('speed', null)">Cualquiera</div></div></div>
+      <div class="wiq-question"><label>¿Menos de 20€?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.budget === true ? 'active' : ''}" onclick="setWiqFilter('budget', true)">Sí</div><div class="wiq-opt ${wiqFilters.budget === false ? 'active' : ''}" onclick="setWiqFilter('budget', false)">No</div><div class="wiq-opt ${wiqFilters.budget === null ? 'active' : ''}" onclick="setWiqFilter('budget', null)">Cualquiera</div></div></div>
+      <div class="wiq-question"><label>¿Con terraza?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.terrace === true ? 'active' : ''}" onclick="setWiqFilter('terrace', true)">Sí</div><div class="wiq-opt ${wiqFilters.terrace === false ? 'active' : ''}" onclick="setWiqFilter('terrace', false)">No</div><div class="wiq-opt ${wiqFilters.terrace === null ? 'active' : ''}" onclick="setWiqFilter('terrace', null)">Cualquiera</div></div></div>
+      <div class="wiq-question"><label>¿Qué tipo de comida?</label><div class="wiq-options"><div class="wiq-opt ${wiqFilters.cuisine === null ? 'active' : ''}" onclick="setWiqFilter('cuisine', null)">Cualquiera</div>${cuisines.slice(0,6).map(c => `<div class="wiq-opt ${wiqFilters.cuisine === c ? 'active' : ''}" onclick="setWiqFilter('cuisine', '${c}')">${c}</div>`).join('')}</div></div>
+      <button class="btn-ghost" style="margin-top:8px" onclick="applyWiqFilters()">🔍 Ver recomendaciones</button>
+      <div id="wiq-results" class="wiq-results" style="margin-top:12px"></div>
+    </div>
+  `;
+
   const filterHtml = `
     <div class="card card-padded" style="margin-bottom:12px">
-      <div class="section-label" style="margin-bottom:8px">Filtros</div>
+      <div class="section-label" style="margin-bottom:8px">Filtros ruleta</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
         <select class="form-input" style="flex:1" onchange="rouletteFilters.cuisine=this.value;render();setTimeout(drawRoulette,50)">
           <option value="all">Toda cocina</option>
@@ -1922,16 +2058,43 @@ function renderRoulette() {
       </div>
     </div>`;
 
-  return `${filterHtml}
+  return `${wiqHtml}${filterHtml}
     <div class="roulette-wrap">
       <canvas id="roulette-canvas" width="280" height="280"></canvas>
       <button class="roulette-btn" onclick="spinRoulette()" ${candidates.length < 2 ? 'disabled style="opacity:0.5"' : ''}>
-        ${candidates.length < 2 ? 'Pocos restaurantes' : '🎡 ¡Girar!'}
+        ${candidates.length < 2 ? 'Pocos restaurantes' : '🎰 ¡Girar!'}
       </button>
       <div class="roulette-result" id="roulette-result">${rouletteResult ? rouletteResult.name : ''}</div>
       <div class="roulette-result-meta" id="roulette-result-meta">${rouletteResult ? `${rouletteResult.cuisine} · ${priceLabelHtml(rouletteResult.priceLevel)} · ${rouletteResult.city}` : (candidates.length ? `${candidates.length} restaurantes en juego` : 'Sin restaurantes con estos filtros')}</div>
       ${rouletteResult ? `<button class="btn-secondary" style="max-width:220px;margin-top:8px" onclick="openRestaurantDetail(${rouletteResult.id})">Ver restaurante →</button>` : ''}
     </div>`;
+}
+
+function setWiqFilter(key, value) {
+  wiqFilters[key] = value;
+  render();
+}
+
+function applyWiqFilters() {
+  let filtered = restaurants.filter(r => !r.pendingVisit);
+  
+  if (wiqFilters.type === 'bar') filtered = filtered.filter(r => r.priceLevel <= 2);
+  if (wiqFilters.type === 'restaurant') filtered = filtered.filter(r => r.priceLevel >= 3);
+  if (wiqFilters.speed === 'fast') filtered = filtered.filter(r => r.cuisine === 'Americana' || r.cuisine === 'Española' || r.priceLevel <= 2);
+  if (wiqFilters.speed === 'slow') filtered = filtered.filter(r => r.priceLevel >= 3);
+  if (wiqFilters.budget === true) filtered = filtered.filter(r => r.priceLevel <= 2);
+  if (wiqFilters.budget === false) filtered = filtered.filter(r => r.priceLevel >= 3);
+  if (wiqFilters.cuisine) filtered = filtered.filter(r => r.cuisine === wiqFilters.cuisine);
+  
+  const resultsHtml = filtered.slice(0,5).map(r => `
+    <div class="pending-card" onclick="openRestaurantDetail(${r.id})" style="padding:8px">
+      <div style="flex:1">
+        <div class="pending-name">${r.name}</div>
+        <div class="pending-meta">${r.cuisine} · ${priceDotsHtml(r.priceLevel)}</div>
+      </div>
+    </div>`).join('');
+  
+  document.getElementById('wiq-results').innerHTML = `<div class="section-label">Te recomendamos (${filtered.length})</div>${resultsHtml || '<div class="empty-sub">No hay coincidencias</div>'}`;
 }
 
 function getRouletteRestaurants() {
@@ -1994,12 +2157,10 @@ function drawRoulette() {
     ctx.restore();
   });
 
-  // Center circle
   ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2);
   ctx.fillStyle = 'var(--bg-card)'; ctx.fill();
   ctx.strokeStyle = 'var(--border)'; ctx.lineWidth = 2; ctx.stroke();
 
-  // Pointer
   ctx.beginPath();
   ctx.moveTo(cx + r - 2, cy);
   ctx.lineTo(cx + r + 14, cy - 7);
@@ -2035,7 +2196,6 @@ function spinRoulette() {
     } else {
       rouletteSpinning = false;
       const slice = (Math.PI * 2) / candidates.length;
-      // Pointer is at angle 0 (right), find which slice is there
       const normalizedAngle = ((rouletteAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
       const idx = candidates.length - 1 - Math.floor(normalizedAngle / slice) % candidates.length;
       rouletteResult = candidates[Math.abs(idx) % candidates.length];
@@ -2052,15 +2212,18 @@ function openRouletteFilters() {
 }
 
 // ================================================================
-// VIEW: MORE (Recipes + Scanner + Stats + Settings)
+// VIEW: MORE (Recipes + Scanner + Stats con Índice Foodie + Settings + Mapa)
 // ================================================================
 let moreTab = 'recipes';
+let chartInstances = {};
+let mapInitialized = false;
 
 function renderMore() {
   const tabs = [
     { id: 'recipes', icon: '🍳', label: 'Recetas' },
     { id: 'scanner', icon: '📷', label: 'Scanner' },
     { id: 'stats', icon: '📊', label: 'Stats' },
+    { id: 'map', icon: '🗺️', label: 'Mapa' },
     { id: 'settings', icon: '⚙️', label: 'Ajustes' }
   ];
 
@@ -2071,7 +2234,8 @@ function renderMore() {
   let content = '';
   if (moreTab === 'recipes') content = renderRecipes();
   else if (moreTab === 'scanner') content = renderScanner();
-  else if (moreTab === 'stats') content = renderStats();
+  else if (moreTab === 'stats') content = renderStatsWithFoodieIndex();
+  else if (moreTab === 'map') content = renderMap();
   else if (moreTab === 'settings') content = renderSettings();
 
   return tabsHtml + content;
@@ -2081,6 +2245,7 @@ function setMoreTab(tab) {
   moreTab = tab;
   render();
   if (tab === 'stats') setTimeout(initStatsCharts, 80);
+  if (tab === 'map') setTimeout(renderMap, 100);
 }
 
 // --- RECIPES ---
@@ -2312,10 +2477,8 @@ function deleteTicket(id) {
   showToast('Ticket eliminado');
 }
 
-// --- STATS ---
-let chartInstances = {};
-
-function renderStats() {
+// --- STATS CON ÍNDICE FOODIE ---
+function renderStatsWithFoodieIndex() {
   const allV = allVisits();
   const totalVisits = allV.length;
   const totalSpent = allV.reduce((a, v) => a + (v.totalSpent || 0), 0);
@@ -2324,22 +2487,26 @@ function renderStats() {
     ? allV.filter(v => v.rating).reduce((a, v) => a + v.rating, 0) / allV.filter(v => v.rating).length
     : 0;
 
-  // Top restaurants
-  const topRestos = restaurants.filter(r => !r.pendingVisit).map(r => ({
-    ...r, avgRating: getRestaurantAvgRating(r), visits: (r.visits || []).length
-  })).filter(r => r.avgRating).sort((a, b) => b.avgRating - a.avgRating).slice(0, 5);
-
-  const rankHtml = topRestos.map((r, i) => {
-    const medalClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    return `<div class="rank-item">
-      <div class="rank-num ${medalClass}">${i + 1}</div>
-      <div class="rank-info">
-        <div class="rank-name">${r.name}</div>
-        <div class="rank-sub">${r.cuisine} · ${r.visits} visita${r.visits !== 1 ? 's' : ''}</div>
-      </div>
-      <div class="rank-score">${starsHtml(r.avgRating, 11)}</div>
-    </div>`;
-  }).join('');
+  const visitedRestos = restaurants.filter(r => !r.pendingVisit);
+  const foodieRank = visitedRestos.map(r => ({ ...r, score: calculateFoodieScore(r) })).sort((a, b) => b.score - a.score).slice(0, 10);
+  
+  const foodieHtml = `<div class="chart-card">
+    <div class="chart-title">🏆 Índice Foodie (Top 10)</div>
+    ${foodieRank.map((r, i) => {
+      const medalClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      return `<div class="rank-item">
+        <div class="rank-num ${medalClass}">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name">${r.name}</div>
+          <div class="rank-sub">${r.cuisine}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="rank-score">${r.score}/100</div>
+          <div class="foodie-index-bar"><div class="foodie-index-fill" style="width:${r.score}%"></div></div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
 
   return `
     <div class="stats-row">
@@ -2353,10 +2520,7 @@ function renderStats() {
       <div class="stat-box"><div class="stat-val">${restaurants.filter(r=>r.pendingVisit).length}</div><div class="stat-lbl">Pendientes</div></div>
     </div>
 
-    ${topRestos.length ? `<div class="chart-card">
-      <div class="chart-title">🏆 Ranking por nota</div>
-      ${rankHtml}
-    </div>` : ''}
+    ${foodieHtml}
 
     <div class="chart-card">
       <div class="chart-title">🍽️ Visitas por tipo de cocina</div>
@@ -2446,6 +2610,44 @@ function destroyChart(name) {
   if (chartInstances[name]) { try { chartInstances[name].destroy(); } catch(e) {} delete chartInstances[name]; }
 }
 
+// --- MAPA INTERACTIVO ---
+function renderMap() {
+  const mapHtml = `<div class="card card-padded" style="margin-bottom:12px">
+    <div class="section-label">🗺️ Mapa de restaurantes</div>
+    <div id="foodie-map" class="map-container"></div>
+    <div class="empty-sub" style="text-align:center; margin-top:8px">🔵 No visitados · 🟢 Visitados</div>
+  </div>`;
+  
+  setTimeout(() => {
+    if (document.getElementById('foodie-map') && !mapInitialized) {
+      const map = L.map('foodie-map').setView([41.6488, -0.8891], 13);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { 
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors' 
+      }).addTo(map);
+      
+      restaurants.forEach(r => {
+        // Simulación de coordenadas (idealmente vendrían de una API de geocodificación)
+        // En una app real, se deberían obtener las coordenadas reales o permitir al usuario asignarlas
+        const lat = 41.6488 + (Math.random() - 0.5) * 0.1;
+        const lng = -0.8891 + (Math.random() - 0.5) * 0.1;
+        const markerColor = r.visits && r.visits.length > 0 ? 'green' : 'blue';
+        const marker = L.circleMarker([lat, lng], { 
+          radius: 8, 
+          fillColor: markerColor, 
+          color: '#fff', 
+          weight: 2, 
+          opacity: 1, 
+          fillOpacity: 0.8 
+        }).addTo(map);
+        marker.bindPopup(`<b>${r.name}</b><br>${r.cuisine}<br>${r.visits?.length || 0} visitas`);
+      });
+      mapInitialized = true;
+    }
+  }, 100);
+  
+  return mapHtml;
+}
+
 // --- SETTINGS ---
 function renderSettings() {
   const theme = document.body.className || 'light';
@@ -2462,6 +2664,7 @@ function renderSettings() {
     <div class="section-label">Datos</div>
     <button class="btn-secondary" onclick="exportData()" style="margin-bottom:8px">💾 Exportar copia de seguridad</button>
     <button class="btn-secondary" onclick="document.getElementById('import-file').click()" style="margin-bottom:8px">📂 Importar datos</button>
+    <button class="btn-secondary" onclick="loadMassiveRestaurants();render()" style="margin-bottom:8px">📚 Cargar base de datos (15+ restaurantes)</button>
 
     <div class="divider"></div>
     <div class="section-label">Información</div>
@@ -2479,6 +2682,7 @@ function setTheme(t) {
   render();
   if (moreTab === 'stats') setTimeout(initStatsCharts, 50);
   if (currentView === 'roulette') setTimeout(drawRoulette, 50);
+  if (moreTab === 'map') setTimeout(renderMap, 100);
 }
 
 // ================================================================
@@ -2582,9 +2786,9 @@ function loadSampleData() {
 // ================================================================
 loadData();
 loadSampleData();
+loadMassiveRestaurants(); // Cargar restaurantes adicionales
 document.body.className = currentTheme;
 render();
-
 </script>
 </body>
 </html>
