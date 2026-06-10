@@ -672,14 +672,38 @@ function renderRestaurants() {
     </div>`;
   }
 
-  const cardsHtml = filtered.length
-    ? filtered.map(renderRestoCard).join('')
-    : '<div class="empty-state"><div class="empty-sub">Ningún restaurante con estos filtros</div></div>';
+const cardsHtml = filtered.length
+  ? filtered.map(renderRestoCard).join('')
+  : '<div class="empty-state"><div class="empty-sub">Ningún restaurante con estos filtros</div></div>';
 
-  return filterHtml + cardsHtml;
+return filterHtml + `<div id="resto-cards-container">${cardsHtml}</div>`;
 }
 
-function updateSearch(term) { searchTerm = term; render(); }
+function updateSearch(term) {
+  searchTerm = term;
+  const visited = restaurants.filter(r => !r.pendingVisit);
+  let filtered = visited;
+  if (filterCuisine !== 'all') filtered = filtered.filter(r => r.cuisine === filterCuisine);
+  if (filterNeighborhood !== 'all') filtered = filtered.filter(r => r.neighborhood === filterNeighborhood);
+  if (term) filtered = filtered.filter(r => r.name.toLowerCase().includes(term.toLowerCase()));
+  filtered.sort((a, b) => {
+    if (sortMode === 'rating') { const ra = getRestaurantAvgRating(a)||0, rb = getRestaurantAvgRating(b)||0; return rb - ra; }
+    if (sortMode === 'visits') return (b.visits||[]).length - (a.visits||[]).length;
+    if (sortMode === 'recent') {
+      const la = (a.visits||[]).slice().sort((x,y)=>y.date.localeCompare(x.date))[0]?.date||'0';
+      const lb = (b.visits||[]).slice().sort((x,y)=>y.date.localeCompare(x.date))[0]?.date||'0';
+      return lb.localeCompare(la);
+    }
+    if (sortMode === 'alpha') return a.name.localeCompare(b.name, 'es');
+    return 0;
+  });
+  const container = document.getElementById('resto-cards-container');
+  if (container) {
+    container.innerHTML = filtered.length
+      ? filtered.map(renderRestoCard).join('')
+      : '<div class="empty-state"><div class="empty-sub">Ningún restaurante con estos filtros</div></div>';
+  }
+}
 function setFilterCuisine(c) { filterCuisine = c; render(); }
 function setFilterNeighborhood(n) { filterNeighborhood = n; render(); }
 function setSortMode(m) { sortMode = m; render(); }
@@ -1091,7 +1115,7 @@ function renderDiary() {
   });
 
   const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  let html = searchHtml;
+  let html = '';
 
   Object.entries(byMonth).sort((a, b) => b[0].localeCompare(a[0])).forEach(([key, monthVisits]) => {
     const [y, m] = key.split('-');
@@ -1113,11 +1137,44 @@ function renderDiary() {
         ${v.notes ? `<div class="diary-note">${v.notes}</div>` : ''}
       </div>`).join('');
   });
-
-  return html;
+return `<div id="diary-search-wrap">
+    ${searchHtml}
+  </div><div id="diary-cards-container">${html.replace(searchHtml, '')}</div>`;
+  return searchHtml + `<div id="diary-cards-container">${html}</div>`;
 }
 
-function updateDiarySearch(term) { diarySearch = term; render(); }
+function updateDiarySearch(term) {
+  diarySearch = term;
+  const visits = allVisits().filter(v =>
+    !term || v.restaurantName.toLowerCase().includes(term.toLowerCase())
+  );
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const byMonth = {};
+  visits.forEach(v => { const key = v.date.slice(0,7); if (!byMonth[key]) byMonth[key]=[]; byMonth[key].push(v); });
+  let html = '';
+  Object.entries(byMonth).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([key, monthVisits]) => {
+    const [y, m] = key.split('-');
+    const total = monthVisits.reduce((a,v) => a+(v.totalSpent||0), 0);
+    html += `<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline">
+      <div class="section-label" style="margin:0">${monthNames[parseInt(m)-1]} ${y}</div>
+      <div style="font-size:11px;color:var(--text-3)">${monthVisits.length} visita${monthVisits.length!==1?'s':''}${total?' · '+total.toFixed(0)+'€':''}</div>
+    </div>`;
+    html += monthVisits.map(v => `
+      <div class="diary-card" onclick="openRestaurantDetail(${v.restaurantId})">
+        <div class="diary-date">${formatDate(v.date)}</div>
+        <div class="diary-resto-name">${v.restaurantName}</div>
+        <div class="diary-meta">
+          ${v.rating ? starsHtml(v.rating) : ''}
+          <span class="tag">${v.cuisine||''}</span>
+          <span>👤 ${v.who||'Ambos'}</span>
+          ${v.totalSpent?`<span>💶 ${v.totalSpent}€</span>`:''}
+        </div>
+        ${v.notes?`<div class="diary-note">${v.notes}</div>`:''}
+      </div>`).join('');
+  });
+  const container = document.getElementById('diary-cards-container');
+  if (container) container.innerHTML = html || '<div class="empty-state"><div class="empty-sub">Sin resultados</div></div>';
+}
 
 function openDiaryModal() {
   if (!restaurants.filter(r => !r.pendingVisit).length) { showToast('Añade un restaurante primero', true); return; }
