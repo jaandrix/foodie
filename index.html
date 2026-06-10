@@ -16,7 +16,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-/* ===== RESET & BASE ===== */
+/* ===== RESET & BASE (COMPLETO) ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
@@ -1048,23 +1048,6 @@ canvas { max-width: 100%; height: 180px !important; }
 // DATA STRUCTURES
 // ================================================================
 
-/*
-  Restaurant: {
-    id, name, city, country, cuisine, priceLevel (1-5),
-    notes, pendingVisit (bool),
-    favDishes: [{ dish, user, note }],
-    visits: [{ date, rating, who, totalSpent, notes, items:[] }]
-  }
-  Recipe: {
-    id, name, cuisine, time, difficulty, servings,
-    ingredients (string), steps (string), notes, createdAt
-  }
-  Ticket: {
-    id, date, restaurantId (opt), restaurantName,
-    total, items:[], notes, savedAt
-  }
-*/
-
 let restaurants = [];
 let recipes = [];
 let tickets = [];
@@ -1073,9 +1056,10 @@ let currentTheme = 'light';
 
 // Filters
 let filterCuisine = 'all';
+let filterNeighborhood = 'all';  // NUEVO: filtro por barrio
 let filterDiscover = 'all';
 let filterFavUser = 'all';
-let rouletteFilters = { cuisine: 'all', price: 'all', city: 'all' };
+let rouletteFilters = { cuisine: 'all', price: 'all', city: 'all', neighborhood: 'all' }; // NUEVO: barrio en ruleta
 
 // Roulette state
 let rouletteAngle = 0;
@@ -1129,6 +1113,36 @@ function handleImport(e) {
   e.target.value = '';
 }
 
+// NUEVO: Función para cargar JSON de restaurantes externo
+function loadRestaurantsFromJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const newRestaurants = JSON.parse(ev.target.result);
+        if (Array.isArray(newRestaurants)) {
+          // Añadir IDs únicos si no tienen
+          newRestaurants.forEach(r => { if (!r.id) r.id = Date.now() + Math.random(); });
+          restaurants = [...newRestaurants, ...restaurants];
+          saveData();
+          render();
+          showToast(`✓ ${newRestaurants.length} restaurantes cargados`);
+          updateNeighborhoodsList(); // Actualizar lista de barrios
+        } else {
+          showToast('Formato inválido', true);
+        }
+      } catch(err) { showToast('Error al leer archivo', true); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 // ================================================================
 // HELPERS
 // ================================================================
@@ -1159,6 +1173,14 @@ const CUISINES = [
   'Italiana','Japonesa','Española','Mexicana','Americana',
   'Francesa','China','India','Mediterránea','Árabe',
   'Griega','Tailandesa','Peruana','Burger','Pizza','Tapas','Otro'
+];
+
+// NUEVO: Lista de barrios de Zaragoza
+const NEIGHBORHOODS = [
+  'Casco Antiguo', 'El Tubo', 'Centro', 'Paseo Independencia', 'Romareda', 'Universidad',
+  'Delicias', 'San José', 'Las Fuentes', 'Torrero', 'La Paz', 'Actur', 'Rey Fernando',
+  'Miralbueno', 'Valdespartera', 'Montecanal', 'Parque Goya', 'Santa Isabel', 'Oliver',
+  'Valdefierro', 'Almozara', 'Expo', 'Casablanca', 'Arrabal', 'San Pablo', 'La Almozara'
 ];
 
 function stripeClass(cuisine) {
@@ -1200,7 +1222,7 @@ function allVisits() {
   const visits = [];
   restaurants.forEach(r => {
     (r.visits || []).forEach(v => {
-      visits.push({ ...v, restaurantName: r.name, restaurantId: r.id, cuisine: r.cuisine, priceLevel: r.priceLevel });
+      visits.push({ ...v, restaurantName: r.name, restaurantId: r.id, cuisine: r.cuisine, priceLevel: r.priceLevel, neighborhood: r.neighborhood });
     });
   });
   return visits.sort((a, b) => b.date.localeCompare(a.date));
@@ -1216,31 +1238,32 @@ function getUniqueCities() {
   return [...set].sort();
 }
 
+// NUEVO: Obtener barrios únicos de los restaurantes
+function getUniqueNeighborhoods() {
+  const set = new Set(restaurants.map(r => r.neighborhood).filter(Boolean));
+  return [...set].sort();
+}
+
+function updateNeighborhoodsList() {
+  const neighborhoods = getUniqueNeighborhoods();
+  if (neighborhoods.length > 0) {
+    // Podríamos actualizar el filtro dinámicamente
+  }
+}
+
 // ================================================================
 // NUEVO: ÍNDICE FOODIE
 // ================================================================
 function calculateFoodieScore(restaurant) {
-  // 40% valoración, 20% frecuencia, 15% calidad-precio, 15% platos favoritos, 10% recencia
   let score = 0;
-  
-  // Valoración (0-5)
   const avgRating = getRestaurantAvgRating(restaurant) || 0;
   score += (avgRating / 5) * 40;
-  
-  // Frecuencia (máximo 20 puntos por 20+ visitas)
   const visitCount = (restaurant.visits || []).length;
   score += Math.min(visitCount, 20) * 1;
-  
-  // Calidad-Precio (inversamente proporcional al precio, máximo 15)
-  // Precio 1 = 15, precio 5 = 3
   const priceScore = 15 - (restaurant.priceLevel - 1) * 3;
   score += Math.max(priceScore, 0);
-  
-  // Platos favoritos (máximo 15)
   const favCount = (restaurant.favDishes || []).length;
   score += Math.min(favCount, 15);
-  
-  // Recencia (máximo 10 puntos)
   const visits = (restaurant.visits || []).sort((a, b) => b.date.localeCompare(a.date));
   if (visits.length > 0) {
     const lastVisitDate = new Date(visits[0].date + 'T12:00:00');
@@ -1249,37 +1272,7 @@ function calculateFoodieScore(restaurant) {
     if (daysSince <= 30) score += 10;
     else if (daysSince <= 90) score += 5;
   }
-  
   return Math.min(Math.round(score), 100);
-}
-
-// ================================================================
-// CARGA MASIVA DE RESTAURANTES (MUESTRA REPRESENTATIVA)
-// ================================================================
-function loadMassiveRestaurants() {
-  if (restaurants.length > 50) return;
-  
-  const massiveList = [
-    { id: 10001, name: "La Rinconada de Lorenzo", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 2, notes: "Cocina aragonesa tradicional", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10002, name: "Los Xarmientos", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 2, notes: "Parrilla aragonesa", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10003, name: "Restaurante El Fuelle", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 2, notes: "Caracoles, solomillo", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10004, name: "Ramen Shifu", city: "Zaragoza", country: "Japón", cuisine: "Japonesa", priceLevel: 1, notes: "Uno de los mejores ramen", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10005, name: "Bokoto Zaragoza", city: "Zaragoza", country: "Japón", cuisine: "Japonesa", priceLevel: 3, notes: "Sushi elegante", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10006, name: "Amrit Restaurante Indio", city: "Zaragoza", country: "India", cuisine: "India", priceLevel: 2, notes: "El mejor indio (4.9)", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10007, name: "Distrito México", city: "Zaragoza", country: "México", cuisine: "Mexicana", priceLevel: 1, notes: "Cantina mexicana", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10008, name: "La Gran Causa", city: "Zaragoza", country: "Perú", cuisine: "Peruana", priceLevel: 1, notes: "El mejor peruano", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10009, name: "Syriana", city: "Zaragoza", country: "Siria", cuisine: "Árabe", priceLevel: 1, notes: "Shawarma, falafel", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10010, name: "Caníbal Royal", city: "Zaragoza", country: "España", cuisine: "Americana", priceLevel: 2, notes: "Hamburguesas artesanales", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10011, name: "El Calamar Bravo", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 1, notes: "Bocadillo de calamar mítico", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10012, name: "Voltereta Nueva Zelanda", city: "Zaragoza", country: "España", cuisine: "Internacional", priceLevel: 2, notes: "Experiencia inmersiva", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10013, name: "La Senda", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 3, notes: "Menú degustación", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10014, name: "Casa Lac", city: "Zaragoza", country: "España", cuisine: "Española", priceLevel: 3, notes: "El más antiguo (1825)", pendingVisit: false, visits: [], favDishes: [] },
-    { id: 10015, name: "Helados Tortosa", city: "Zaragoza", country: "España", cuisine: "Italiana", priceLevel: 1, notes: "Helados artesanales", pendingVisit: false, visits: [], favDishes: [] }
-  ];
-  
-  restaurants = [...massiveList, ...restaurants];
-  saveData();
-  showToast(`📚 ${massiveList.length} restaurantes cargados`);
 }
 
 // ================================================================
@@ -1323,16 +1316,18 @@ function render() {
 }
 
 // ================================================================
-// VIEW: RESTAURANTS (CON BÚSQUEDA)
+// VIEW: RESTAURANTS (CON BÚSQUEDA Y FILTRO POR BARRIO)
 // ================================================================
 function renderRestaurants() {
   const visited = restaurants.filter(r => !r.pendingVisit);
   const cuisines = getUniqueCuisines();
+  const neighborhoods = getUniqueNeighborhoods();
 
-  let filtered = filterCuisine === 'all' ? visited : visited.filter(r => r.cuisine === filterCuisine);
-  if (searchTerm) {
-    filtered = filtered.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  }
+  let filtered = visited;
+  if (filterCuisine !== 'all') filtered = filtered.filter(r => r.cuisine === filterCuisine);
+  if (filterNeighborhood !== 'all') filtered = filtered.filter(r => r.neighborhood === filterNeighborhood);
+  if (searchTerm) filtered = filtered.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  
   filtered.sort((a, b) => {
     const ra = getRestaurantAvgRating(a) || 0;
     const rb = getRestaurantAvgRating(b) || 0;
@@ -1341,8 +1336,12 @@ function renderRestaurants() {
 
   const filterHtml = `
     <div class="filter-bar">
-      <div class="filter-pill ${filterCuisine === 'all' ? 'active' : ''}" onclick="setFilterCuisine('all')">Todos</div>
-      ${cuisines.map(c => `<div class="filter-pill ${filterCuisine === c ? 'active' : ''}" onclick="setFilterCuisine('${c}')">${c}</div>`).join('')}
+      <div class="filter-pill ${filterCuisine === 'all' ? 'active' : ''}" onclick="setFilterCuisine('all')">Todas cocinas</div>
+      ${cuisines.slice(0,8).map(c => `<div class="filter-pill ${filterCuisine === c ? 'active' : ''}" onclick="setFilterCuisine('${c}')">${c}</div>`).join('')}
+    </div>
+    <div class="filter-bar">
+      <div class="filter-pill ${filterNeighborhood === 'all' ? 'active' : ''}" onclick="setFilterNeighborhood('all')">Todos barrios</div>
+      ${neighborhoods.slice(0,10).map(n => `<div class="filter-pill ${filterNeighborhood === n ? 'active' : ''}" onclick="setFilterNeighborhood('${n}')">${n}</div>`).join('')}
     </div>
     <div class="search-bar">
       <input type="text" class="form-input" placeholder="🔍 Buscar restaurante..." id="restaurant-search" value="${searchTerm}" oninput="updateSearch(this.value)">
@@ -1350,17 +1349,19 @@ function renderRestaurants() {
   `;
 
   if (!visited.length) {
-    return `<div class="empty-state"><div class="empty-icon">🍽️</div><div class="empty-title">Sin restaurantes aún</div><div class="empty-sub">Añade tu primer restaurante con el botón de arriba</div></div>`;
+    return `<div class="empty-state">
+      <div class="empty-icon">🍽️</div>
+      <div class="empty-title">Sin restaurantes aún</div>
+      <div class="empty-sub">Añade tu primer restaurante o carga el JSON con 250 establecimientos</div>
+      <button class="btn-secondary" style="margin-top:16px" onclick="loadRestaurantsFromJSON()">📂 Cargar restaurantes desde JSON</button>
+    </div>`;
   }
-  return filterHtml + filtered.map(renderRestoCard).join('') || '<div class="empty-state"><div class="empty-sub">Ningún restaurante con este filtro</div></div>';
+  return filterHtml + filtered.map(renderRestoCard).join('') || '<div class="empty-state"><div class="empty-sub">Ningún restaurante con estos filtros</div></div>';
 }
 
-function updateSearch(term) {
-  searchTerm = term;
-  render();
-}
-
+function updateSearch(term) { searchTerm = term; render(); }
 function setFilterCuisine(c) { filterCuisine = c; render(); }
+function setFilterNeighborhood(n) { filterNeighborhood = n; render(); }
 
 function renderRestoCard(r) {
   const rating = getRestaurantAvgRating(r);
@@ -1372,7 +1373,7 @@ function renderRestoCard(r) {
     <div class="resto-body">
       <div class="resto-name">${r.name}</div>
       <div class="resto-meta">
-        <span>${r.city || ''}${r.country && r.country !== r.city ? ', ' + r.country : ''}</span>
+        <span>${r.neighborhood || r.city || ''}${r.country && r.country !== r.city ? ', ' + r.country : ''}</span>
         ${priceDotsHtml(r.priceLevel || 1, 5)}
       </div>
       <div class="resto-tags">
@@ -1388,7 +1389,7 @@ function renderRestoCard(r) {
 }
 
 // ================================================================
-// RESTAURANT DETAIL MODAL (FUNCIONES COMPLETAS)
+// RESTAURANT DETAIL MODAL (COMPLETO)
 // ================================================================
 function openRestaurantDetail(id) {
   const r = restaurants.find(x => x.id === id);
@@ -1424,7 +1425,7 @@ function openRestaurantDetail(id) {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
         <div>
           <div class="modal-title" style="margin-bottom:4px">${r.name}</div>
-          <div style="font-size:12px;color:var(--text-2)">${r.city || ''}${r.country ? ' · ' + r.country : ''} · ${r.cuisine || ''} · ${priceLabelHtml(r.priceLevel)}</div>
+          <div style="font-size:12px;color:var(--text-2)">${r.neighborhood || r.city || ''}${r.country ? ' · ' + r.country : ''} · ${r.cuisine || ''} · ${priceLabelHtml(r.priceLevel)}</div>
           ${rating ? `<div style="margin-top:5px">${starsHtml(rating)}</div>` : ''}
         </div>
         <button class="modal-close" onclick="closeModal()">✕</button>
@@ -1467,7 +1468,7 @@ function removeFavDish(restoId, dishIdx) {
 }
 
 // ================================================================
-// ADD/EDIT RESTAURANT MODAL
+// ADD/EDIT RESTAURANT MODAL (CON BARRIO)
 // ================================================================
 let modalPriceLevel = 2;
 let editingRestoId = null;
@@ -1479,6 +1480,10 @@ function openRestaurantModal(id) {
 
   const cuistineOpts = CUISINES.map(c =>
     `<option value="${c}" ${r?.cuisine === c ? 'selected' : ''}>${c}</option>`
+  ).join('');
+  
+  const neighborhoodOpts = NEIGHBORHOODS.map(n =>
+    `<option value="${n}" ${r?.neighborhood === n ? 'selected' : ''}>${n}</option>`
   ).join('');
 
   const priceHtml = [1,2,3,4,5].map(i =>
@@ -1497,13 +1502,18 @@ function openRestaurantModal(id) {
 
       <div class="form-2col">
         <div class="form-row">
-          <label class="form-label">Ciudad</label>
-          <input id="r-city" class="form-input" placeholder="Zaragoza" value="${r?.city || ''}">
+          <label class="form-label">Barrio</label>
+          <select id="r-neighborhood" class="form-input">${neighborhoodOpts}<option value="Otro">Otro</option></select>
         </div>
         <div class="form-row">
-          <label class="form-label">País</label>
-          <input id="r-country" class="form-input" placeholder="España" value="${r?.country || 'España'}">
+          <label class="form-label">Ciudad</label>
+          <input id="r-city" class="form-input" placeholder="Zaragoza" value="${r?.city || 'Zaragoza'}">
         </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">País</label>
+        <input id="r-country" class="form-input" placeholder="España" value="${r?.country || 'España'}">
       </div>
 
       <div class="form-row">
@@ -1542,7 +1552,8 @@ function saveRestaurant() {
   const data = {
     id: editingRestoId || Date.now(),
     name,
-    city: document.getElementById('r-city').value.trim(),
+    neighborhood: document.getElementById('r-neighborhood')?.value || '',
+    city: document.getElementById('r-city').value.trim() || 'Zaragoza',
     country: document.getElementById('r-country').value.trim() || 'España',
     cuisine: document.getElementById('r-cuisine').value,
     priceLevel: modalPriceLevel,
@@ -1811,7 +1822,7 @@ function renderDiscover() {
         <div class="resto-stripe ${stripeClass(r.cuisine)}" style="width:4px;border-radius:2px;flex-shrink:0;min-height:40px"></div>
         <div style="flex:1;padding-left:8px">
           <div class="pending-name">${r.name}</div>
-          <div class="pending-meta">${r.city || ''} · ${r.cuisine || ''} · ${priceLabelHtml(r.priceLevel)}${r.hours ? ` · 🕒 ${r.hours}` : ''}</div>
+          <div class="pending-meta">${r.neighborhood || r.city || ''} · ${r.cuisine || ''} · ${priceLabelHtml(r.priceLevel)}${r.hours ? ` · 🕒 ${r.hours}` : ''}</div>
         </div>
         <button onclick="event.stopPropagation();markAsVisited(${r.id})" style="background:var(--accent-soft);border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;color:var(--accent);cursor:pointer">Ya fui ✓</button>
       </div>`).join('');
@@ -1847,6 +1858,7 @@ function renderDiscover() {
 }
 
 function openPendingModal(id) {
+  const neighborhoodOpts = NEIGHBORHOODS.map(n => `<option>${n}</option>`).join('');
   const html = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -1856,9 +1868,10 @@ function openPendingModal(id) {
         <input id="p-name" class="form-input" placeholder="Ej: El Bar de los Fueros">
       </div>
       <div class="form-2col">
+        <div class="form-row"><label class="form-label">Barrio</label><select id="p-neighborhood" class="form-input">${neighborhoodOpts}<option>Otro</option></select></div>
         <div class="form-row"><label class="form-label">Ciudad</label><input id="p-city" class="form-input" placeholder="Zaragoza" value="Zaragoza"></div>
-        <div class="form-row"><label class="form-label">País</label><input id="p-country" class="form-input" placeholder="España" value="España"></div>
       </div>
+      <div class="form-row"><label class="form-label">País</label><input id="p-country" class="form-input" placeholder="España" value="España"></div>
       <div class="form-row">
         <label class="form-label">Tipo de cocina</label>
         <select id="p-cuisine" class="form-input">${CUISINES.map(c => `<option>${c}</option>`).join('')}</select>
@@ -1894,8 +1907,9 @@ function savePending() {
   if (!name) { showToast('Escribe un nombre', true); return; }
   const r = {
     id: Date.now(), name,
-    city: document.getElementById('p-city').value.trim(),
-    country: document.getElementById('p-country').value.trim(),
+    neighborhood: document.getElementById('p-neighborhood')?.value || '',
+    city: document.getElementById('p-city').value.trim() || 'Zaragoza',
+    country: document.getElementById('p-country').value.trim() || 'España',
     cuisine: document.getElementById('p-cuisine').value,
     priceLevel: window._pendingPrice || 2,
     hours: document.getElementById('p-hours').value.trim(),
@@ -1923,7 +1937,7 @@ function openPendingDetail(id) {
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-title">${r.name}<button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div style="font-size:12px;color:var(--text-2);margin-bottom:16px">${r.city} · ${r.cuisine} · ${priceLabelHtml(r.priceLevel)}${r.hours ? `<br>🕒 ${r.hours}` : ''}</div>
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:16px">${r.neighborhood || r.city || ''} · ${r.cuisine} · ${priceLabelHtml(r.priceLevel)}${r.hours ? `<br>🕒 ${r.hours}` : ''}</div>
       ${r.notes ? `<div style="font-size:13px;color:var(--text-2);font-style:italic;margin-bottom:16px;padding:10px;background:var(--bg-subtle);border-radius:10px">${r.notes}</div>` : ''}
       <button class="btn-primary" onclick="closeModal();markAsVisited(${id})">✓ Ya fui — registrar visita</button>
       <button class="btn-secondary" onclick="closeModal();openRestaurantModal(${id})">✏️ Editar</button>
@@ -2017,12 +2031,13 @@ function showRankingModal() {
 }
 
 // ================================================================
-// VIEW: ROULETTE (CON "¿QUÉ ME APETECE?" Y NUEVO ÍCONO)
+// VIEW: ROULETTE (CON FILTROS POR BARRIO Y "¿QUÉ ME APETECE?")
 // ================================================================
 function renderRoulette() {
   const candidates = getRouletteRestaurants();
   const cities = getUniqueCities();
   const cuisines = getUniqueCuisines();
+  const neighborhoods = getUniqueNeighborhoods();
 
   // Sección ¿Qué me apetece?
   const wiqHtml = `
@@ -2046,6 +2061,12 @@ function renderRoulette() {
           <option value="all">Toda cocina</option>
           ${cuisines.map(c => `<option value="${c}" ${rouletteFilters.cuisine === c ? 'selected' : ''}>${c}</option>`).join('')}
         </select>
+        <select class="form-input" style="flex:1" onchange="rouletteFilters.neighborhood=this.value;render();setTimeout(drawRoulette,50)">
+          <option value="all">Todos los barrios</option>
+          ${neighborhoods.map(n => `<option value="${n}" ${rouletteFilters.neighborhood === n ? 'selected' : ''}>${n}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
         <select class="form-input" style="flex:1" onchange="rouletteFilters.city=this.value;render();setTimeout(drawRoulette,50)">
           <option value="all">Toda ciudad</option>
           ${cities.map(c => `<option value="${c}" ${rouletteFilters.city === c ? 'selected' : ''}>${c}</option>`).join('')}
@@ -2065,7 +2086,7 @@ function renderRoulette() {
         ${candidates.length < 2 ? 'Pocos restaurantes' : '🎰 ¡Girar!'}
       </button>
       <div class="roulette-result" id="roulette-result">${rouletteResult ? rouletteResult.name : ''}</div>
-      <div class="roulette-result-meta" id="roulette-result-meta">${rouletteResult ? `${rouletteResult.cuisine} · ${priceLabelHtml(rouletteResult.priceLevel)} · ${rouletteResult.city}` : (candidates.length ? `${candidates.length} restaurantes en juego` : 'Sin restaurantes con estos filtros')}</div>
+      <div class="roulette-result-meta" id="roulette-result-meta">${rouletteResult ? `${rouletteResult.cuisine} · ${rouletteResult.neighborhood || rouletteResult.city} · ${priceLabelHtml(rouletteResult.priceLevel)}` : (candidates.length ? `${candidates.length} restaurantes en juego` : 'Sin restaurantes con estos filtros')}</div>
       ${rouletteResult ? `<button class="btn-secondary" style="max-width:220px;margin-top:8px" onclick="openRestaurantDetail(${rouletteResult.id})">Ver restaurante →</button>` : ''}
     </div>`;
 }
@@ -2090,7 +2111,7 @@ function applyWiqFilters() {
     <div class="pending-card" onclick="openRestaurantDetail(${r.id})" style="padding:8px">
       <div style="flex:1">
         <div class="pending-name">${r.name}</div>
-        <div class="pending-meta">${r.cuisine} · ${priceDotsHtml(r.priceLevel)}</div>
+        <div class="pending-meta">${r.cuisine} · ${r.neighborhood || r.city} · ${priceDotsHtml(r.priceLevel)}</div>
       </div>
     </div>`).join('');
   
@@ -2101,6 +2122,7 @@ function getRouletteRestaurants() {
   return restaurants.filter(r => {
     if (r.pendingVisit) return false;
     if (rouletteFilters.cuisine !== 'all' && r.cuisine !== rouletteFilters.cuisine) return false;
+    if (rouletteFilters.neighborhood !== 'all' && r.neighborhood !== rouletteFilters.neighborhood) return false;
     if (rouletteFilters.city !== 'all' && r.city !== rouletteFilters.city) return false;
     if (rouletteFilters.price !== 'all') {
       if (rouletteFilters.price === '4-5') { if (r.priceLevel < 4) return false; }
@@ -2212,7 +2234,7 @@ function openRouletteFilters() {
 }
 
 // ================================================================
-// VIEW: MORE (Recipes + Scanner + Stats con Índice Foodie + Settings + Mapa)
+// VIEW: MORE (Recetas + Scanner + Stats con Índice Foodie + Settings + Mapa)
 // ================================================================
 let moreTab = 'recipes';
 let chartInstances = {};
@@ -2498,7 +2520,7 @@ function renderStatsWithFoodieIndex() {
         <div class="rank-num ${medalClass}">${i+1}</div>
         <div class="rank-info">
           <div class="rank-name">${r.name}</div>
-          <div class="rank-sub">${r.cuisine}</div>
+          <div class="rank-sub">${r.cuisine} · ${r.neighborhood || r.city}</div>
         </div>
         <div style="text-align:right">
           <div class="rank-score">${r.score}/100</div>
@@ -2554,7 +2576,6 @@ function initStatsCharts() {
     }
   };
 
-  // Cuisine chart
   const cuisineMap = {};
   allV.forEach(v => { cuisineMap[v.cuisine || 'Otro'] = (cuisineMap[v.cuisine || 'Otro'] || 0) + 1; });
   const cEntries = Object.entries(cuisineMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
@@ -2563,15 +2584,11 @@ function initStatsCharts() {
   if (cCtx) {
     chartInstances['cuisineChart'] = new Chart(cCtx, {
       type: 'bar',
-      data: {
-        labels: cEntries.map(([k]) => k),
-        datasets: [{ data: cEntries.map(([, v]) => v), backgroundColor: ROULETTE_COLORS }]
-      },
+      data: { labels: cEntries.map(([k]) => k), datasets: [{ data: cEntries.map(([, v]) => v), backgroundColor: ROULETTE_COLORS }] },
       options: { ...baseOpts, plugins: { legend: { display: false } } }
     });
   }
 
-  // Monthly visits
   const monthMap = {};
   allV.forEach(v => { const key = v.date.slice(0, 7); monthMap[key] = (monthMap[key] || 0) + 1; });
   const mEntries = Object.entries(monthMap).sort().slice(-12);
@@ -2580,15 +2597,11 @@ function initStatsCharts() {
   if (mCtx) {
     chartInstances['monthChart'] = new Chart(mCtx, {
       type: 'line',
-      data: {
-        labels: mEntries.map(([k]) => k.slice(5)),
-        datasets: [{ data: mEntries.map(([, v]) => v), borderColor: '#E8613C', tension: 0.3, fill: true, backgroundColor: 'rgba(232,97,60,0.1)' }]
-      },
+      data: { labels: mEntries.map(([k]) => k.slice(5)), datasets: [{ data: mEntries.map(([, v]) => v), borderColor: '#E8613C', tension: 0.3, fill: true, backgroundColor: 'rgba(232,97,60,0.1)' }] },
       options: baseOpts
     });
   }
 
-  // Monthly spend
   const spendMap = {};
   allV.forEach(v => { if (v.totalSpent) { const key = v.date.slice(0, 7); spendMap[key] = (spendMap[key] || 0) + v.totalSpent; } });
   const sEntries = Object.entries(spendMap).sort().slice(-12);
@@ -2597,10 +2610,7 @@ function initStatsCharts() {
   if (sCtx) {
     chartInstances['spendChart'] = new Chart(sCtx, {
       type: 'bar',
-      data: {
-        labels: sEntries.map(([k]) => k.slice(5)),
-        datasets: [{ data: sEntries.map(([, v]) => Math.round(v)), backgroundColor: '#2D6A4F' }]
-      },
+      data: { labels: sEntries.map(([k]) => k.slice(5)), datasets: [{ data: sEntries.map(([, v]) => Math.round(v)), backgroundColor: '#2D6A4F' }] },
       options: baseOpts
     });
   }
@@ -2625,21 +2635,12 @@ function renderMap() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors' 
       }).addTo(map);
       
-      restaurants.forEach(r => {
-        // Simulación de coordenadas (idealmente vendrían de una API de geocodificación)
-        // En una app real, se deberían obtener las coordenadas reales o permitir al usuario asignarlas
+      restaurants.slice(0, 100).forEach(r => {
         const lat = 41.6488 + (Math.random() - 0.5) * 0.1;
         const lng = -0.8891 + (Math.random() - 0.5) * 0.1;
         const markerColor = r.visits && r.visits.length > 0 ? 'green' : 'blue';
-        const marker = L.circleMarker([lat, lng], { 
-          radius: 8, 
-          fillColor: markerColor, 
-          color: '#fff', 
-          weight: 2, 
-          opacity: 1, 
-          fillOpacity: 0.8 
-        }).addTo(map);
-        marker.bindPopup(`<b>${r.name}</b><br>${r.cuisine}<br>${r.visits?.length || 0} visitas`);
+        const marker = L.circleMarker([lat, lng], { radius: 8, fillColor: markerColor, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8 }).addTo(map);
+        marker.bindPopup(`<b>${r.name}</b><br>${r.cuisine}<br>${r.neighborhood || r.city}<br>${r.visits?.length || 0} visitas`);
       });
       mapInitialized = true;
     }
@@ -2664,7 +2665,7 @@ function renderSettings() {
     <div class="section-label">Datos</div>
     <button class="btn-secondary" onclick="exportData()" style="margin-bottom:8px">💾 Exportar copia de seguridad</button>
     <button class="btn-secondary" onclick="document.getElementById('import-file').click()" style="margin-bottom:8px">📂 Importar datos</button>
-    <button class="btn-secondary" onclick="loadMassiveRestaurants();render()" style="margin-bottom:8px">📚 Cargar base de datos (15+ restaurantes)</button>
+    <button class="btn-secondary" onclick="loadRestaurantsFromJSON()" style="margin-bottom:8px">📚 Cargar 250 restaurantes desde JSON</button>
 
     <div class="divider"></div>
     <div class="section-label">Información</div>
@@ -2686,13 +2687,13 @@ function setTheme(t) {
 }
 
 // ================================================================
-// SAMPLE DATA
+// SAMPLE DATA (SOLO DATOS DE EJEMPLO, SIN LOS 250)
 // ================================================================
 function loadSampleData() {
   if (restaurants.length > 0) return;
   restaurants = [
     {
-      id: 1001, name: "La Miga", city: "Zaragoza", country: "España",
+      id: 1001, name: "La Miga", city: "Zaragoza", country: "España", neighborhood: "Casco Antiguo",
       cuisine: "Española", priceLevel: 2, notes: "Bocadillos increíbles, ambiente de barrio",
       pendingVisit: false,
       favDishes: [
@@ -2705,7 +2706,7 @@ function loadSampleData() {
       ]
     },
     {
-      id: 1002, name: "Sushi Yuki", city: "Zaragoza", country: "España",
+      id: 1002, name: "Sushi Yuki", city: "Zaragoza", country: "España", neighborhood: "Centro",
       cuisine: "Japonesa", priceLevel: 3, notes: "Buen omakase, reservar con antelación",
       pendingVisit: false,
       favDishes: [
@@ -2718,65 +2719,39 @@ function loadSampleData() {
       ]
     },
     {
-      id: 1003, name: "Pizzería Napoli", city: "Zaragoza", country: "España",
+      id: 1003, name: "Pizzería Napoli", city: "Zaragoza", country: "España", neighborhood: "Romareda",
       cuisine: "Italiana", priceLevel: 2, notes: "Masa napolitana auténtica",
       pendingVisit: false,
-      favDishes: [
-        { dish: "Margherita bufalá", user: "Ambos", note: "La clásica, insuperable" }
-      ],
-      visits: [
-        { id: 5, date: "2026-03-08", rating: 4, who: "Jandro", totalSpent: 22, notes: "Rápido y buenísimo" }
-      ]
+      favDishes: [{ dish: "Margherita bufalá", user: "Ambos", note: "La clásica, insuperable" }],
+      visits: [{ id: 5, date: "2026-03-08", rating: 4, who: "Jandro", totalSpent: 22, notes: "Rápido y buenísimo" }]
     },
     {
-      id: 1004, name: "El Fuelle", city: "Zaragoza", country: "España",
-      cuisine: "Tapas", priceLevel: 2, notes: "Tapas del Casco Antiguo, siempre lleno",
+      id: 1004, name: "El Fuelle", city: "Zaragoza", country: "España", neighborhood: "Casco Antiguo",
+      cuisine: "Española", priceLevel: 2, notes: "Tapas del Casco Antiguo, siempre lleno",
       pendingVisit: false,
-      favDishes: [],
-      visits: [
-        { id: 6, date: "2026-04-01", rating: 3, who: "Ambos", totalSpent: 35, notes: "Servicio lento pero las tapas muy bien" }
-      ]
+      visits: [{ id: 6, date: "2026-04-01", rating: 3, who: "Ambos", totalSpent: 35, notes: "Servicio lento pero las tapas muy bien" }]
     },
     {
-      id: 1005, name: "Noi Thai", city: "Zaragoza", country: "España",
+      id: 1005, name: "Noi Thai", city: "Zaragoza", country: "España", neighborhood: "Centro",
       cuisine: "Tailandesa", priceLevel: 2, notes: "Menú del día excelente",
-      pendingVisit: true,
-      favDishes: [],
-      visits: []
-    },
-    {
-      id: 1006, name: "Asador Los Pirineos", city: "Jaca", country: "España",
-      cuisine: "Española", priceLevel: 3, notes: "Para los viajes a la montaña",
-      pendingVisit: true,
-      favDishes: [],
-      visits: []
+      pendingVisit: true, favDishes: [], visits: []
     }
   ];
 
-  recipes = [
-    {
-      id: 2001, name: "Pasta al limón de Valle", cuisine: "Italiana", time: 20,
-      difficulty: "Fácil", servings: 2,
-      ingredients: "- 200g espaguetis\n- 1 limón (zumo y ralladura)\n- 100ml nata\n- 2 dientes de ajo\n- Parmesano rallado\n- Sal, pimienta, aceite de oliva",
-      steps: "1. Cocer la pasta al dente.\n2. Sofreír el ajo en aceite.\n3. Añadir nata, zumo y ralladura de limón.\n4. Mezclar con la pasta.\n5. Servir con parmesano.",
-      notes: "Añadir un poco de agua de cocción para ligar la salsa",
-      createdAt: "2026-01-10"
-    }
-  ];
+  recipes = [{
+    id: 2001, name: "Pasta al limón de Valle", cuisine: "Italiana", time: 20,
+    difficulty: "Fácil", servings: 2,
+    ingredients: "- 200g espaguetis\n- 1 limón (zumo y ralladura)\n- 100ml nata\n- 2 dientes de ajo\n- Parmesano rallado\n- Sal, pimienta, aceite de oliva",
+    steps: "1. Cocer la pasta al dente.\n2. Sofreír el ajo en aceite.\n3. Añadir nata, zumo y ralladura de limón.\n4. Mezclar con la pasta.\n5. Servir con parmesano.",
+    notes: "Añadir un poco de agua de cocción para ligar la salsa", createdAt: "2026-01-10"
+  }];
 
-  tickets = [
-    {
-      id: 3001, date: "2026-02-14", restaurantId: 1002,
-      restaurantName: "Sushi Yuki", total: 82,
-      items: [
-        { name: "Omakase x2", price: 60 },
-        { name: "Cerveza Asahi x2", price: 9 },
-        { name: "Mochi helado", price: 8 },
-        { name: "Propina", price: 5 }
-      ],
-      notes: "San Valentín", savedAt: "2026-02-14"
-    }
-  ];
+  tickets = [{
+    id: 3001, date: "2026-02-14", restaurantId: 1002,
+    restaurantName: "Sushi Yuki", total: 82,
+    items: [{ name: "Omakase x2", price: 60 }, { name: "Cerveza Asahi x2", price: 9 }, { name: "Mochi helado", price: 8 }, { name: "Propina", price: 5 }],
+    notes: "San Valentín", savedAt: "2026-02-14"
+  }];
 
   saveData();
 }
@@ -2786,7 +2761,6 @@ function loadSampleData() {
 // ================================================================
 loadData();
 loadSampleData();
-loadMassiveRestaurants(); // Cargar restaurantes adicionales
 document.body.className = currentTheme;
 render();
 </script>
